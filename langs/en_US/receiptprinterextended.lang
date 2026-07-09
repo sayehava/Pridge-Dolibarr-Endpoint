@@ -29,3 +29,5 @@ NoFileTypePrinterFound=No "Local Printer" type printer found in the built-in Rec
 AlreadyAdopted=Already using PrintBridge
 Adopt=Adopt
 PrinterAdopted=Printer now using PrintBridge profile '%s'
+UsingBundledReceiver=The default endpoint is currently this module's own bundled test receiver: it only records what it receives and never actually prints. Replace it with your real print collector's URL before going to production.
+LastReceivedTicket=Last ticket received by the bundled receiver: profile '%s', %s byte(s), %s

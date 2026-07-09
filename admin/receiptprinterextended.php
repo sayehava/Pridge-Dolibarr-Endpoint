@@ -185,6 +185,17 @@ print '</tr>';
 print '</table>';
 print '</form>';
 
+$bundledendpoint = dol_buildpath('/receiptprinterextended/printbridgereceiver.php', 2);
+if (getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT') === $bundledendpoint) {
+    print '<br>'.info_admin($langs->trans('UsingBundledReceiver'));
+}
+
+$lastreceived = getDolGlobalString('PRINTBRIDGE_LASTRECEIVED');
+if ($lastreceived !== '') {
+    list($lastref, $lastsize, $lastdate) = array_pad(explode('|', $lastreceived), 3, '');
+    print '<br><span class="opacitymedium">'.$langs->trans('LastReceivedTicket', dol_escape_htmltag($lastref), (int) $lastsize, dol_print_date((int) $lastdate, 'dayhour')).'</span>';
+}
+
 print '<br>';
 
 
