@@ -3,9 +3,9 @@
  * Module descriptor for Receipt Printers - Extended (PrintBridge).
  *
  * This module does not clone or conflict with Dolibarr's built-in Receipt Printers module.
- * It only adds an HTTP transport ("PrintBridge") that the built-in module's existing "File"
- * connector type can be pointed at, via a PHP stream wrapper registered through Dolibarr's
- * official hook system. See the README for the full design.
+ * It only adds an HTTP transport ("PrintBridge") that the built-in module's existing "Local
+ * Printer" connector type can be pointed at, via a PHP stream wrapper registered through
+ * Dolibarr's official hook system. See the README for the full design.
  */
 
 include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
@@ -35,7 +35,9 @@ class modReceiptPrinterExtended extends DolibarrModules
         $this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
         $this->picto = 'printer';
 
-        $this->dirs = array();
+        // Where the bundled PrintBridge receiver (printbridgereceiver.php) records the last
+        // ticket it got, so the admin page can show proof the round trip actually worked.
+        $this->dirs = array('/receiptprinterextended');
 
         $this->config_page_url = array('receiptprinterextended.php@receiptprinterextended');
 
@@ -91,9 +93,28 @@ class modReceiptPrinterExtended extends DolibarrModules
      */
     public function init($options = '')
     {
+        global $conf;
+
         $result = $this->_load_tables('/receiptprinterextended/install/mysql/');
         if ($result < 0) {
             return -1;
+        }
+
+        // Give PRINTBRIDGE_DEFAULT_ENDPOINT a working value out of the box: the bundled
+        // receiver bundled with this module (printbridgereceiver.php), so adopting/testing a
+        // printer produces a real HTTP round trip immediately instead of a blank page (empty
+        // Parameter) or a connection error (endpoint that doesn't exist yet). Only set if
+        // still empty, so reactivating the module never clobbers an admin's real endpoint.
+        if (getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT') === '') {
+            dolibarr_set_const(
+                $this->db,
+                'PRINTBRIDGE_DEFAULT_ENDPOINT',
+                dol_buildpath('/receiptprinterextended/printbridgereceiver.php', 2),
+                'chaine',
+                0,
+                '',
+                $conf->entity
+            );
         }
 
         return $this->_init(array(), $options);
