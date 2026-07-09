@@ -222,7 +222,7 @@ print '<table class="noborder centpercent">';
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans('DefaultServer').'</td>';
 print '<td>'.$langs->trans('DefaultEndpointToken').'</td>';
-print '<td>'.$langs->trans('DefaultEndpoint').'</td>';
+print '<td title="'.dol_escape_htmltag($langs->trans('FallbackEndpointTooltip')).'">'.$langs->trans('DefaultEndpoint').'</td>';
 print '<td>'.$langs->trans('DefaultTimeout').'</td>';
 print '<td></td>';
 print '</tr>';
@@ -354,6 +354,8 @@ print '<br>';
 
 print load_fiche_titre($langs->trans('PrintBridgeProfiles'), '', '');
 
+print '<span class="opacitymedium">'.$langs->trans('PrintBridgeProfilesHelp').'</span><br><br>';
+
 $editingprofileid = ($action == 'editprofile') ? $profileid : 0;
 
 print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
@@ -369,7 +371,7 @@ print '<tr class="liste_titre">';
 print '<td>'.$langs->trans('ProfileRef').'</td>';
 print '<td>'.$langs->trans('Server').'</td>';
 print '<td>'.$langs->trans('EndpointToken').'</td>';
-print '<td>'.$langs->trans('FallbackEndpoint').'</td>';
+print '<td title="'.dol_escape_htmltag($langs->trans('FallbackEndpointTooltip')).'">'.$langs->trans('FallbackEndpoint').'</td>';
 print '<td>'.$langs->trans('Timeout').'</td>';
 print '<td>'.$langs->trans('ProfileParameterValue').'</td>';
 print '<td></td>';
