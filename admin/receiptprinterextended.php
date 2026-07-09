@@ -34,6 +34,7 @@ if (!$res) {
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once __DIR__.'/../class/receiptprinterextendedprofile.class.php';
+require_once __DIR__.'/../class/receiptprinterextendedbuiltinprinter.class.php';
 
 // Load translation files required by the page
 $langs->loadLangs(array('admin', 'receiptprinterextended'));
@@ -50,8 +51,10 @@ $endpoint = GETPOST('endpoint', 'alphanohtml');
 $token = GETPOST('token', 'alphanohtml');
 $timeout = GETPOSTINT('timeout');
 $verifyssl = GETPOSTINT('verifyssl');
+$builtinprinterid = GETPOSTINT('builtinprinterid');
 
 $profile = new ReceiptPrinterExtendedProfile($db);
+$builtinprinter = new ReceiptPrinterExtendedBuiltinPrinter($db);
 
 
 /*
@@ -110,6 +113,30 @@ if ($action == 'delete') {
     $action = '';
 }
 
+if ($action == 'adopt') {
+    $adoptref = 'printer_'.$builtinprinterid;
+    $error = 0;
+
+    if ($profile->fetchByRef($adoptref) <= 0) {
+        $result = $profile->create($adoptref, '', '', 0, -1);
+        if ($result <= 0) {
+            $error++;
+            setEventMessages($langs->trans($profile->error), null, 'errors');
+        }
+    }
+
+    if (!$error) {
+        $result = $builtinprinter->setParameterToProfile($builtinprinterid, $adoptref);
+        if ($result > 0) {
+            setEventMessages($langs->trans('PrinterAdopted', $adoptref), null);
+        } else {
+            setEventMessages($langs->trans($builtinprinter->error), null, 'errors');
+        }
+    }
+
+    $action = '';
+}
+
 
 /*
  * View
@@ -154,6 +181,45 @@ print '</tr>';
 
 print '</table>';
 print '</form>';
+
+print '<br>';
+
+
+// Existing printers that can be adopted
+
+print load_fiche_titre($langs->trans('AdoptExistingPrinters'), '', '');
+
+print '<span class="opacitymedium">'.$langs->trans('AdoptExistingPrintersHelp').'</span><br><br>';
+
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans('Name').'</td>';
+print '<td>'.$langs->trans('Parameters').'</td>';
+print '<td></td>';
+print '</tr>';
+
+$builtinprinters = $builtinprinter->fetchFileTypePrinters();
+if (empty($builtinprinters)) {
+    print '<tr class="oddeven"><td colspan="3">'.$langs->trans('NoFileTypePrinterFound').'</td></tr>';
+}
+
+foreach ($builtinprinters as $line) {
+    $isadopted = (strpos($line['parameter'], 'printbridge://') === 0);
+
+    print '<tr class="oddeven">';
+    print '<td>'.dol_escape_htmltag($line['name']).'</td>';
+    print '<td><code>'.dol_escape_htmltag($line['parameter']).'</code></td>';
+    print '<td class="right">';
+    if ($isadopted) {
+        print '<span class="opacitymedium">'.$langs->trans('AlreadyAdopted').'</span>';
+    } else {
+        print '<a class="button smallpaddingimp" href="'.$_SERVER['PHP_SELF'].'?action=adopt&token='.newToken().'&builtinprinterid='.((int) $line['rowid']).'">'.$langs->trans('Adopt').'</a>';
+    }
+    print '</td>';
+    print '</tr>';
+}
+
+print '</table>';
 
 print '<br>';
 
