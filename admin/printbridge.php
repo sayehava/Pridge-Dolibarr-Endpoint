@@ -1,8 +1,8 @@
 <?php
 /**
- *      \file       admin/receiptprinterextended.php
- *      \ingroup    receiptprinterextended
- *      \brief      Setup page for the Receipt Printers - Extended (PrintBridge) module.
+ *      \file       admin/printbridge.php
+ *      \ingroup    printbridge
+ *      \brief      Setup page for the Print Bridge module.
  *
  * Manages PrintBridge profiles and module-wide defaults only. This page does not manage
  * printers or ticket templates - those stay owned by Dolibarr's built-in Receipt Printers
@@ -33,14 +33,14 @@ if (!$res) {
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-require_once __DIR__.'/../class/receiptprinterextendedprofile.class.php';
-require_once __DIR__.'/../class/receiptprinterextendedbuiltinprinter.class.php';
+require_once __DIR__.'/../class/printbridgeprofile.class.php';
+require_once __DIR__.'/../class/printbridgebuiltinprinter.class.php';
 
-// Load translation files required by the page. The @receiptprinterextended suffix is
-// required for custom-module lang files - without it Dolibarr looks in core's own langs/
-// directory, silently fails to find it, and every key below falls back to its raw
-// (unspaced PascalCase) name.
-$langs->loadLangs(array('admin', 'receiptprinterextended@receiptprinterextended'));
+// Load translation files required by the page. The @printbridge suffix is required for
+// custom-module lang files - without it Dolibarr looks in core's own langs/ directory,
+// silently fails to find it, and every key below falls back to its raw (unspaced PascalCase)
+// name.
+$langs->loadLangs(array('admin', 'printbridge@printbridge'));
 
 if (!$user->admin) {
     accessforbidden();
@@ -56,8 +56,8 @@ $timeout = GETPOSTINT('timeout');
 $verifyssl = GETPOSTINT('verifyssl');
 $builtinprinterid = GETPOSTINT('builtinprinterid');
 
-$profile = new ReceiptPrinterExtendedProfile($db);
-$builtinprinter = new ReceiptPrinterExtendedBuiltinPrinter($db);
+$profile = new PrintBridgeProfile($db);
+$builtinprinter = new PrintBridgeBuiltinPrinter($db);
 
 
 /*
@@ -147,13 +147,13 @@ if ($action == 'adopt') {
 
 $form = new Form($db);
 
-$title = $langs->trans('ReceiptPrinterExtendedDesc');
+$title = $langs->trans('PrintBridgeDesc');
 llxHeader('', $title);
 
 $linkback = '<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans("BackToModuleList").'</a>';
 print load_fiche_titre($title, $linkback, 'title_setup');
 
-print $langs->trans('ReceiptPrinterExtendedDescLong').'<br><br>';
+print $langs->trans('PrintBridgeDescLong').'<br><br>';
 
 
 // Module-wide defaults
@@ -185,7 +185,7 @@ print '</tr>';
 print '</table>';
 print '</form>';
 
-$bundledendpoint = dol_buildpath('/receiptprinterextended/printbridgereceiver.php', 2);
+$bundledendpoint = dol_buildpath('/printbridge/printbridgereceiver.php', 2);
 if (getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT') === $bundledendpoint) {
     print '<br>'.info_admin($langs->trans('UsingBundledReceiver'));
 }
