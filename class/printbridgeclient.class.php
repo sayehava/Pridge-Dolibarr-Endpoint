@@ -5,6 +5,10 @@
  * The bytes handled here are always a raw ESC/POS binary command stream (never a PDF or an
  * image file) - see the README "Data format". The receiving endpoint is expected to relay them
  * to a real or virtual ESC/POS printer.
+ *
+ * No auth token, no SSL verification toggle: PrintBridge is meant to reach a collector inside
+ * the same trusted Dolibarr environment, not an arbitrary internet endpoint. Standard cURL
+ * defaults apply (certificates are verified when the endpoint is HTTPS).
  */
 class PrintBridgeClient
 {
@@ -16,7 +20,7 @@ class PrintBridgeClient
     /**
      * Send raw ESC/POS bytes to the endpoint configured on the given profile.
      *
-     * @param PrintBridgeProfile $profile Profile with endpoint/token/timeout/verifyssl resolved
+     * @param PrintBridgeProfile $profile Profile with endpoint/timeout resolved
      * @param string             $data    Raw ESC/POS bytes
      * @return bool True on HTTP 2xx, false otherwise (see $this->error)
      */
@@ -34,12 +38,6 @@ class PrintBridgeClient
             'Content-Type: application/octet-stream',
             'X-PrintBridge-Profile: '.$profile->ref,
         );
-        $token = $profile->getToken();
-        if (!empty($token)) {
-            $headers[] = 'Authorization: Bearer '.$token;
-        }
-
-        $verifyssl = $profile->getVerifySsl();
 
         $ch = curl_init($endpoint);
         curl_setopt_array($ch, array(
@@ -47,8 +45,6 @@ class PrintBridgeClient
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_TIMEOUT => $profile->getTimeout(),
-            CURLOPT_SSL_VERIFYPEER => $verifyssl,
-            CURLOPT_SSL_VERIFYHOST => $verifyssl ? 2 : 0,
             CURLOPT_RETURNTRANSFER => true,
         ));
 

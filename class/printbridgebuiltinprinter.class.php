@@ -92,4 +92,30 @@ class PrintBridgeBuiltinPrinter
 
         return 1;
     }
+
+    /**
+     * Undo adopt: clear an adopted printer's Parameter back to empty. The value it held
+     * before being adopted was never saved, so this cannot restore it - it just decouples the
+     * printer from PrintBridge so it can be reconfigured from scratch. The matching
+     * PrintBridgeProfile row (if any) is left untouched.
+     *
+     * @param int $printerid Row id in llx_printer_receipt
+     * @return int >0 if OK, <=0 if KO
+     */
+    public function clearParameter($printerid)
+    {
+        $sql = "UPDATE ".MAIN_DB_PREFIX."printer_receipt";
+        $sql .= " SET parameter = ''";
+        $sql .= " WHERE rowid = ".((int) $printerid);
+        $sql .= " AND fk_type = ".((int) self::CONNECTOR_FILE);
+        $sql .= " AND entity IN (".getEntity('printer_receipt').")";
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            $this->error = $this->db->lasterror();
+            return -1;
+        }
+
+        return 1;
+    }
 }

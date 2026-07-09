@@ -65,27 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// This bundled receiver is meant purely as a working zero-config default. If a token has
-// been configured, enforce it like any real collector would; if none is set, accept
-// unauthenticated requests so the round trip works out of the box (see AdoptExistingPrinters
-// help text and README for the warning to replace this endpoint before production use).
-$expectedtoken = getDolGlobalString('PRINTBRIDGE_DEFAULT_TOKEN');
-if ($expectedtoken !== '') {
-    $authheader = '';
-    foreach (array('HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION') as $key) {
-        if (!empty($_SERVER[$key])) {
-            $authheader = $_SERVER[$key];
-            break;
-        }
-    }
-
-    if ($authheader !== 'Bearer '.$expectedtoken) {
-        http_response_code(401);
-        header('Content-Type: text/plain');
-        echo "Invalid or missing bearer token";
-        exit;
-    }
-}
+// No auth token: PrintBridge is meant to reach a collector inside the same trusted Dolibarr
+// environment, not an arbitrary internet endpoint (see PrintBridgeClient/PrintBridgeProfile).
 
 $data = file_get_contents('php://input');
 $profileref = isset($_SERVER['HTTP_X_PRINTBRIDGE_PROFILE']) ? $_SERVER['HTTP_X_PRINTBRIDGE_PROFILE'] : '';

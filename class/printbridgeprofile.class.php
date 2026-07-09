@@ -3,8 +3,10 @@
  * CRUD for PrintBridge profiles (table llx_printbridge_profile).
  *
  * A profile is what a printer's Parameter value printbridge://<ref> resolves to: which
- * PrintBridge endpoint/token/timeout/SSL settings to use. Any field left empty/unset falls
- * back to the module-wide PRINTBRIDGE_DEFAULT_* constants (see admin page).
+ * PrintBridge endpoint/timeout to use. Any field left empty/unset falls back to the
+ * module-wide PRINTBRIDGE_DEFAULT_* constants (see admin page). No auth token and no SSL
+ * verification toggle - PrintBridge is meant to reach a collector inside the same trusted
+ * Dolibarr environment, not an arbitrary internet endpoint.
  */
 class PrintBridgeProfile
 {
@@ -29,19 +31,9 @@ class PrintBridgeProfile
     public $endpoint = '';
 
     /**
-     * @var string Auth token override, empty string means "use module default"
-     */
-    public $token = '';
-
-    /**
      * @var int Timeout override in seconds, 0 means "use module default"
      */
     public $timeout = 0;
-
-    /**
-     * @var int SSL verification override: 1 yes, 0 no, -1 means "use module default"
-     */
-    public $verify_ssl = -1;
 
     /**
      * @var string Last error message
@@ -71,7 +63,7 @@ class PrintBridgeProfile
      */
     public function fetchByRef($ref)
     {
-        $sql = "SELECT rowid, ref, endpoint, token, timeout, verify_ssl";
+        $sql = "SELECT rowid, ref, endpoint, timeout";
         $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_profile";
         $sql .= " WHERE ref = '".$this->db->escape($ref)."'";
         $sql .= " AND entity IN (".getEntity('printbridge_profile').")";
@@ -90,9 +82,7 @@ class PrintBridgeProfile
         $this->id = (int) $obj->rowid;
         $this->ref = $obj->ref;
         $this->endpoint = $obj->endpoint;
-        $this->token = $obj->token;
         $this->timeout = (int) $obj->timeout;
-        $this->verify_ssl = (int) $obj->verify_ssl;
 
         return 1;
     }
@@ -106,7 +96,7 @@ class PrintBridgeProfile
     {
         $list = array();
 
-        $sql = "SELECT rowid, ref, endpoint, token, timeout, verify_ssl";
+        $sql = "SELECT rowid, ref, endpoint, timeout";
         $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_profile";
         $sql .= " WHERE entity IN (".getEntity('printbridge_profile').")";
         $sql .= " ORDER BY ref ASC";
@@ -118,9 +108,7 @@ class PrintBridgeProfile
                     'rowid' => (int) $obj->rowid,
                     'ref' => $obj->ref,
                     'endpoint' => $obj->endpoint,
-                    'token' => $obj->token,
                     'timeout' => (int) $obj->timeout,
-                    'verify_ssl' => (int) $obj->verify_ssl,
                 );
             }
         }
@@ -131,14 +119,12 @@ class PrintBridgeProfile
     /**
      * Create a profile.
      *
-     * @param string $ref       Short id used as printbridge://<ref>
-     * @param string $endpoint  Endpoint override, empty to use PRINTBRIDGE_DEFAULT_ENDPOINT
-     * @param string $token     Token override, empty to use PRINTBRIDGE_DEFAULT_TOKEN
-     * @param int    $timeout   Timeout override in seconds, 0 to use PRINTBRIDGE_DEFAULT_TIMEOUT
-     * @param int    $verifyssl 1/0 override, -1 to use PRINTBRIDGE_DEFAULT_VERIFY_SSL
+     * @param string $ref      Short id used as printbridge://<ref>
+     * @param string $endpoint Endpoint override, empty to use PRINTBRIDGE_DEFAULT_ENDPOINT
+     * @param int    $timeout  Timeout override in seconds, 0 to use PRINTBRIDGE_DEFAULT_TIMEOUT
      * @return int >0 if OK, <=0 if KO
      */
-    public function create($ref, $endpoint, $token, $timeout, $verifyssl)
+    public function create($ref, $endpoint, $timeout)
     {
         global $conf;
 
@@ -153,14 +139,12 @@ class PrintBridgeProfile
         }
 
         $sql = "INSERT INTO ".MAIN_DB_PREFIX."printbridge_profile";
-        $sql .= " (entity, ref, endpoint, token, timeout, verify_ssl, datec)";
+        $sql .= " (entity, ref, endpoint, timeout, datec)";
         $sql .= " VALUES (";
         $sql .= ((int) $conf->entity).",";
         $sql .= " '".$this->db->escape($ref)."',";
         $sql .= " '".$this->db->escape($endpoint)."',";
-        $sql .= " '".$this->db->escape($token)."',";
         $sql .= " ".((int) $timeout).",";
-        $sql .= " ".((int) $verifyssl).",";
         $sql .= " '".$this->db->idate(dol_now())."'";
         $sql .= ")";
 
@@ -179,20 +163,16 @@ class PrintBridgeProfile
      * Update a profile's settings. The ref itself is not editable once created, so the
      * printbridge://<ref> value already wired into a printer's Parameter field never breaks.
      *
-     * @param int    $id        Profile row id
-     * @param string $endpoint  Endpoint override
-     * @param string $token     Token override
-     * @param int    $timeout   Timeout override
-     * @param int    $verifyssl Verify SSL override
+     * @param int    $id       Profile row id
+     * @param string $endpoint Endpoint override
+     * @param int    $timeout  Timeout override
      * @return int >0 if OK, <=0 if KO
      */
-    public function update($id, $endpoint, $token, $timeout, $verifyssl)
+    public function update($id, $endpoint, $timeout)
     {
         $sql = "UPDATE ".MAIN_DB_PREFIX."printbridge_profile SET";
         $sql .= " endpoint = '".$this->db->escape($endpoint)."',";
-        $sql .= " token = '".$this->db->escape($token)."',";
-        $sql .= " timeout = ".((int) $timeout).",";
-        $sql .= " verify_ssl = ".((int) $verifyssl);
+        $sql .= " timeout = ".((int) $timeout);
         $sql .= " WHERE rowid = ".((int) $id);
         $sql .= " AND entity IN (".getEntity('printbridge_profile').")";
 
@@ -237,16 +217,6 @@ class PrintBridgeProfile
     }
 
     /**
-     * Resolve the auth token to use: profile override or module default.
-     *
-     * @return string
-     */
-    public function getToken()
-    {
-        return $this->token !== '' ? $this->token : getDolGlobalString('PRINTBRIDGE_DEFAULT_TOKEN');
-    }
-
-    /**
      * Resolve the timeout to use: profile override or module default.
      *
      * @return int
@@ -254,15 +224,5 @@ class PrintBridgeProfile
     public function getTimeout()
     {
         return $this->timeout > 0 ? $this->timeout : max(1, getDolGlobalInt('PRINTBRIDGE_DEFAULT_TIMEOUT', 5));
-    }
-
-    /**
-     * Resolve whether to verify the SSL certificate: profile override or module default.
-     *
-     * @return bool
-     */
-    public function getVerifySsl()
-    {
-        return $this->verify_ssl >= 0 ? (bool) $this->verify_ssl : (bool) getDolGlobalInt('PRINTBRIDGE_DEFAULT_VERIFY_SSL', 1);
     }
 }

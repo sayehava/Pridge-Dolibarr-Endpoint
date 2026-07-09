@@ -32,7 +32,6 @@ if (!$res) {
  */
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once __DIR__.'/../class/printbridgeprofile.class.php';
 require_once __DIR__.'/../class/printbridgebuiltinprinter.class.php';
 require_once __DIR__.'/../class/printbridgelog.class.php';
@@ -52,9 +51,7 @@ $action = GETPOST('action', 'aZ09');
 $profileid = GETPOSTINT('profileid');
 $ref = GETPOST('ref', 'alphanohtml');
 $endpoint = GETPOST('endpoint', 'alphanohtml');
-$token = GETPOST('token', 'alphanohtml');
 $timeout = GETPOSTINT('timeout');
-$verifyssl = GETPOSTINT('verifyssl');
 $builtinprinterid = GETPOSTINT('builtinprinterid');
 
 $profile = new PrintBridgeProfile($db);
@@ -68,9 +65,7 @@ $printbridgelog = new PrintBridgeLog($db);
 
 if ($action == 'setconst') {
     dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_ENDPOINT', GETPOST('defaultendpoint', 'alphanohtml'), 'chaine', 0, '', $conf->entity);
-    dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_TOKEN', GETPOST('defaulttoken', 'alphanohtml'), 'chaine', 0, '', $conf->entity);
     dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_TIMEOUT', GETPOSTINT('defaulttimeout'), 'chaine', 0, '', $conf->entity);
-    dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_VERIFY_SSL', GETPOSTINT('defaultverifyssl'), 'chaine', 0, '', $conf->entity);
 
     setEventMessages($langs->trans('SetupSaved'), null);
     $action = '';
@@ -85,7 +80,7 @@ if ($action == 'add') {
     }
 
     if (!$error) {
-        $result = $profile->create($ref, $endpoint, $token, $timeout, $verifyssl);
+        $result = $profile->create($ref, $endpoint, $timeout);
         if ($result > 0) {
             setEventMessages($langs->trans('ProfileAdded', $ref), null);
         } else {
@@ -97,7 +92,7 @@ if ($action == 'add') {
 }
 
 if ($action == 'updateprofile') {
-    $result = $profile->update($profileid, $endpoint, $token, $timeout, $verifyssl);
+    $result = $profile->update($profileid, $endpoint, $timeout);
     if ($result > 0) {
         setEventMessages($langs->trans('ProfileUpdated'), null);
     } else {
@@ -123,7 +118,7 @@ if ($action == 'adopt') {
     $error = 0;
 
     if ($profile->fetchByRef($adoptref) <= 0) {
-        $result = $profile->create($adoptref, '', '', 0, -1);
+        $result = $profile->create($adoptref, '', 0);
         if ($result <= 0) {
             $error++;
             setEventMessages($langs->trans($profile->error), null, 'errors');
@@ -142,12 +137,21 @@ if ($action == 'adopt') {
     $action = '';
 }
 
+if ($action == 'unadopt') {
+    $result = $builtinprinter->clearParameter($builtinprinterid);
+    if ($result > 0) {
+        setEventMessages($langs->trans('PrinterUnadopted'), null);
+    } else {
+        setEventMessages($langs->trans($builtinprinter->error), null, 'errors');
+    }
+
+    $action = '';
+}
+
 
 /*
  * View
  */
-
-$form = new Form($db);
 
 $title = $langs->trans('PrintBridgeDesc');
 llxHeader('', $title);
@@ -170,17 +174,13 @@ print '<table class="noborder centpercent">';
 
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans('DefaultEndpoint').'</td>';
-print '<td>'.$langs->trans('DefaultToken').'</td>';
 print '<td>'.$langs->trans('DefaultTimeout').'</td>';
-print '<td>'.$langs->trans('DefaultVerifySSL').'</td>';
 print '<td></td>';
 print '</tr>';
 
 print '<tr class="oddeven">';
 print '<td><input class="minwidth200" type="text" name="defaultendpoint" value="'.dol_escape_htmltag(getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT')).'"></td>';
-print '<td><input class="minwidth150" type="text" name="defaulttoken" value="'.dol_escape_htmltag(getDolGlobalString('PRINTBRIDGE_DEFAULT_TOKEN')).'"></td>';
 print '<td><input class="width50" type="text" name="defaulttimeout" value="'.dol_escape_htmltag((string) getDolGlobalInt('PRINTBRIDGE_DEFAULT_TIMEOUT', 5)).'"></td>';
-print '<td>'.$form->selectyesno('defaultverifyssl', getDolGlobalInt('PRINTBRIDGE_DEFAULT_VERIFY_SSL', 1), 1).'</td>';
 print '<td><input type="submit" class="button small" value="'.$langs->trans('Save').'"></td>';
 print '</tr>';
 
@@ -227,7 +227,8 @@ foreach ($builtinprinters as $line) {
     print '<td><code>'.dol_escape_htmltag($line['parameter']).'</code></td>';
     print '<td class="right">';
     if ($isadopted) {
-        print '<span class="opacitymedium">'.$langs->trans('AlreadyAdopted').'</span>';
+        print '<span class="opacitymedium marginrightonly">'.$langs->trans('AlreadyAdopted').'</span>';
+        print '<a class="button smallpaddingimp" href="'.$_SERVER['PHP_SELF'].'?action=unadopt&token='.newToken().'&builtinprinterid='.((int) $line['rowid']).'">'.$langs->trans('Unadopt').'</a>';
     } else {
         print '<a class="button smallpaddingimp" href="'.$_SERVER['PHP_SELF'].'?action=adopt&token='.newToken().'&builtinprinterid='.((int) $line['rowid']).'">'.$langs->trans('Adopt').'</a>';
     }
@@ -244,12 +245,6 @@ print '<br>';
 
 print load_fiche_titre($langs->trans('PrintBridgeProfiles'), '', '');
 
-$verifysslchoices = array(
-    -1 => $langs->trans('UseDefaultValue'),
-    1 => $langs->trans('Yes'),
-    0 => $langs->trans('No'),
-);
-
 $editingprofileid = ($action == 'editprofile') ? $profileid : 0;
 
 print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
@@ -264,9 +259,7 @@ print '<table class="noborder centpercent">';
 print '<tr class="liste_titre">';
 print '<td>'.$langs->trans('ProfileRef').'</td>';
 print '<td>'.$langs->trans('Endpoint').'</td>';
-print '<td>'.$langs->trans('Token').'</td>';
 print '<td>'.$langs->trans('Timeout').'</td>';
-print '<td>'.$langs->trans('VerifySSL').'</td>';
 print '<td>'.$langs->trans('ProfileParameterValue').'</td>';
 print '<td></td>';
 print '</tr>';
@@ -278,17 +271,13 @@ foreach ($profiles as $line) {
     if ($editingprofileid && $line['rowid'] == $editingprofileid) {
         print '<td>'.dol_escape_htmltag($line['ref']).'</td>';
         print '<td><input class="minwidth200" type="text" name="endpoint" value="'.dol_escape_htmltag($line['endpoint']).'"></td>';
-        print '<td><input class="minwidth150" type="text" name="token" value="'.dol_escape_htmltag($line['token']).'"></td>';
         print '<td><input class="width50" type="text" name="timeout" value="'.((int) $line['timeout']).'"></td>';
-        print '<td>'.$form->selectarray('verifyssl', $verifysslchoices, $line['verify_ssl']).'</td>';
         print '<td><code>printbridge://'.dol_escape_htmltag($line['ref']).'</code></td>';
         print '<td><input type="submit" class="button small" value="'.$langs->trans('Save').'"></td>';
     } else {
         print '<td>'.dol_escape_htmltag($line['ref']).'</td>';
         print '<td>'.dol_escape_htmltag($line['endpoint']).'</td>';
-        print '<td>'.($line['token'] !== '' ? '••••••••' : '').'</td>';
         print '<td>'.($line['timeout'] > 0 ? (int) $line['timeout'] : $langs->trans('UseDefaultValue')).'</td>';
-        print '<td>'.$verifysslchoices[$line['verify_ssl'] >= 0 ? ($line['verify_ssl'] ? 1 : 0) : -1].'</td>';
         print '<td><code>printbridge://'.dol_escape_htmltag($line['ref']).'</code></td>';
         print '<td class="nowraponall">';
         print '<a class="editfielda marginrightonly" href="'.$_SERVER['PHP_SELF'].'?action=editprofile&token='.newToken().'&profileid='.((int) $line['rowid']).'">'.img_edit().'</a>';
@@ -305,9 +294,7 @@ if (!$editingprofileid) {
     print '<tr class="oddeven">';
     print '<td><input class="minwidth100" type="text" name="ref" placeholder="'.dol_escape_htmltag($langs->trans('ProfileRefHelp')).'"></td>';
     print '<td><input class="minwidth200" type="text" name="endpoint"></td>';
-    print '<td><input class="minwidth150" type="text" name="token"></td>';
     print '<td><input class="width50" type="text" name="timeout"></td>';
-    print '<td>'.$form->selectarray('verifyssl', $verifysslchoices, -1).'</td>';
     print '<td></td>';
     print '<td><input type="submit" class="button small" value="'.$langs->trans('Add').'"></td>';
     print '</tr>';
