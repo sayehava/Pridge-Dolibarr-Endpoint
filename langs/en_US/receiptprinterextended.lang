@@ -1,7 +1,7 @@
 # Dolibarr language file - Source file is en_US - receiptprinterextended
 # Language file for the Receipt Printers - Extended (PrintBridge) module.
 ReceiptPrinterExtendedDesc=Adds an HTTP "PrintBridge" transport for the built-in Receipt Printers module and TakePOS
-ReceiptPrinterExtendedDescLong=Registers a printbridge:// stream wrapper so a printer configured with connector type "File" in Dolibarr's built-in Receipt Printers module (Setup > Receipt Printers) can forward its ticket over HTTPS to an external print collector, instead of writing to a local file. Configure PrintBridge profiles below, then reference them from that module's printer setup.
+ReceiptPrinterExtendedDescLong=Registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" in Dolibarr's built-in Receipt Printers module (Setup > Receipt Printers) can forward its ticket over HTTPS to an external print collector, instead of writing to a local file. Configure PrintBridge profiles below, then reference them from that module's printer setup.
 PrintBridgeDefaults=Default settings
 PrintBridgeProfiles=PrintBridge profiles
 DefaultEndpoint=Default endpoint URL
@@ -21,11 +21,11 @@ ProfileAdded=Profile '%s' added
 ProfileUpdated=Profile updated
 ProfileDeleted=Profile deleted
 ProfileParameterValue=Parameter value for the built-in module
-ProfileParameterInstructions=To use a profile from TakePOS, create or edit a printer in Setup > Receipt Printers with connector type "File" and paste the printbridge://<id> value shown above into its Parameter field.
+ProfileParameterInstructions=To use a profile from TakePOS, create or edit a printer in Setup > Receipt Printers with connector type "Local Printer" and paste the printbridge://<id> value shown above into its Parameter field.
 SetupSaved=Setup saved
 AdoptExistingPrinters=Adopt an existing printer
-AdoptExistingPrintersHelp=Only printers using the built-in module's "File" connector type can be adopted: Dummy has nothing to intercept, and Network/Windows/CUPS printers never go through a mechanism PrintBridge can hook into. Adopting a printer overwrites its current Parameter value.
-NoFileTypePrinterFound=No File-type printer found in the built-in Receipt Printers module.
+AdoptExistingPrintersHelp=Only printers using the built-in module's "Local Printer" connector type can be adopted: Dummy has nothing to intercept, and Network/Local Windows Printer/Cups printers never go through a mechanism PrintBridge can hook into. Adopting a printer overwrites its current Parameter value.
+NoFileTypePrinterFound=No "Local Printer" type printer found in the built-in Receipt Printers module.
 AlreadyAdopted=Already using PrintBridge
 Adopt=Adopt
 PrinterAdopted=Printer now using PrintBridge profile '%s'

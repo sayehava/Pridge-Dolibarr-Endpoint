@@ -7,21 +7,25 @@ Dolibarr core and without disabling or conflicting with the built-in module.
 ## Why this exists
 
 Dolibarr's receipt printer stack (`dolReceiptPrinter` + `mike42/escpos-php`) only ships 5
-connector types (Dummy, File, Network, Windows, CUPS) with no hook or plugin point to add a
-6th. On top of that, TakePOS hardcodes `isModEnabled('receiptprinter')` and instantiates the
-built-in module's own class from a fixed core file path in several places - there is no way
-to swap in a different module's printer class, and disabling the built-in module (as an
-earlier version of this project did) makes TakePOS's printer UI disappear entirely.
+connector types - shown in the built-in module's UI as **Dummy Printer**, **Local Printer**,
+**Network Printer**, **Local Windows Printer** and **Cups Printer** - with no hook or plugin
+point to add a 6th. On top of that, TakePOS hardcodes `isModEnabled('receiptprinter')` and
+instantiates the built-in module's own class from a fixed core file path in several places -
+there is no way to swap in a different module's printer class, and disabling the built-in
+module (as an earlier version of this project did) makes TakePOS's printer UI disappear
+entirely.
 
 This module works around both limitations without touching any core file:
 
-- It reuses the **existing "File" connector type** unmodified. `FilePrintConnector` (from
-  `mike42/escpos-php`) does nothing but `fopen()` / `fwrite()` / `fclose()` on the printer's
-  Parameter value - plain PHP stream I/O, no validation.
-- It registers a PHP stream wrapper for the scheme `printbridge://`. Pointing a File-type
-  printer's Parameter at `printbridge://<profile-id>` routes those `fopen()`/`fwrite()`/
-  `fclose()` calls into this module instead of the filesystem: the ESC/POS bytes are buffered
-  in memory and POSTed over HTTPS to the endpoint configured for that profile.
+- It reuses the **existing "Local Printer" connector type** unmodified. Internally that's
+  `FilePrintConnector` (from `mike42/escpos-php`), meant for a local device path like
+  `/dev/usb/lp0` - it does nothing but `fopen()` / `fwrite()` / `fclose()` on the printer's
+  Parameter value, with zero validation of that value.
+- It registers a PHP stream wrapper for the scheme `printbridge://`. Pointing a Local
+  Printer's Parameter at `printbridge://<profile-id>` (instead of a real device path) routes
+  those `fopen()`/`fwrite()`/`fclose()` calls into this module instead of the filesystem: the
+  ESC/POS bytes are buffered in memory and POSTed over HTTPS to the endpoint configured for
+  that profile.
 - The wrapper is registered through Dolibarr's official hook system (a module claiming the
   `all` hook context gets its `class/actions_<module>.class.php` instantiated on every
   request) - not a core patch.
@@ -44,20 +48,21 @@ used for this instead.
    defaults set on the same page.
 3. Either:
    - Go to **Setup > Receipt Printers** (the built-in module) and create or edit a printer
-     with connector type **File**, using `printbridge://<profile-id>` as its Parameter value -
-     the admin page shows this exact string next to each profile, ready to copy; or
+     with connector type **Local Printer**, using `printbridge://<profile-id>` as its
+     Parameter value - the admin page shows this exact string next to each profile, ready to
+     copy; or
    - On this module's setup page, use **Adopt an existing printer**: it lists the built-in
-     module's printers that use connector type **File** (the only type PrintBridge can take
-     over - see "Why this exists") with a one-click Adopt action. Adopting creates a matching
-     profile automatically (ref `printer_<id>`) and rewrites that printer's Parameter to
-     `printbridge://printer_<id>`, **overwriting its previous Parameter value**.
+     module's printers that use connector type **Local Printer** (the only type PrintBridge
+     can take over - see "Why this exists") with a one-click Adopt action. Adopting creates a
+     matching profile automatically (ref `printer_<id>`) and rewrites that printer's Parameter
+     to `printbridge://printer_<id>`, **overwriting its previous Parameter value**.
 4. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
    printed from that terminal are now forwarded over HTTPS to your print collector instead of
    being written to a local file.
 
-Printers using connector type Dummy, Network, Windows or CUPS cannot be adopted or manually
-pointed at `printbridge://` - none of them route through the `fopen()` call PrintBridge
-intercepts (see `the README`).
+Printers using connector type Dummy Printer, Network Printer, Local Windows Printer or Cups
+Printer cannot be adopted or manually pointed at `printbridge://` - none of them route through
+the `fopen()` call PrintBridge intercepts (see `the README`).
 
 ## Data format
 
