@@ -87,8 +87,25 @@ If you set `PRINTBRIDGE_DEFAULT_TOKEN`, the bundled receiver enforces it like a 
 would; if you leave it blank, it accepts any POST - fine for local testing, not for exposing
 to the internet unset.
 
+## Recent prints (test log)
+
+The setup page's **Recent prints** section keeps the last 10 tickets that went through
+PrintBridge, regardless of what happened to them:
+
+- Forwarded successfully: endpoint and HTTP status shown.
+- Forwarded but failed (endpoint unreachable, non-2xx response, etc.): endpoint and HTTP
+  status shown.
+- No endpoint configured at all (neither the profile nor the module default has one): the
+  ticket is still logged, marked "No endpoint configured - stored only", so nothing is
+  silently lost even before any endpoint exists.
+
+Each row has a **Preview** button (a small modal) showing the ticket's text with ESC/POS
+control bytes and raster image data stripped out - not a real receipt rendering, just enough
+to eyeball whether the right content went out. Entries beyond the last 10 are pruned
+automatically.
+
 ## Status
 
 Core mechanism (module descriptor, hook, stream wrapper, HTTP client, profile storage, admin
-page, bundled test receiver) is in place. Not yet tested against a live Dolibarr instance /
-TakePOS terminal.
+page, bundled test receiver, recent-prints log) is in place. Not yet tested against a live
+Dolibarr instance / TakePOS terminal.
