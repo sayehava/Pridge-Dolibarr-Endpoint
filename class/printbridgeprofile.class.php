@@ -1,12 +1,12 @@
 <?php
 /**
- * CRUD for PrintBridge profiles (table llx_receiptprinterextended_profile).
+ * CRUD for PrintBridge profiles (table llx_printbridge_profile).
  *
  * A profile is what a printer's Parameter value printbridge://<ref> resolves to: which
  * PrintBridge endpoint/token/timeout/SSL settings to use. Any field left empty/unset falls
  * back to the module-wide PRINTBRIDGE_DEFAULT_* constants (see admin page).
  */
-class ReceiptPrinterExtendedProfile
+class PrintBridgeProfile
 {
     /**
      * @var DoliDB Database handler
@@ -72,9 +72,9 @@ class ReceiptPrinterExtendedProfile
     public function fetchByRef($ref)
     {
         $sql = "SELECT rowid, ref, endpoint, token, timeout, verify_ssl";
-        $sql .= " FROM ".MAIN_DB_PREFIX."receiptprinterextended_profile";
+        $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_profile";
         $sql .= " WHERE ref = '".$this->db->escape($ref)."'";
-        $sql .= " AND entity IN (".getEntity('receiptprinterextended_profile').")";
+        $sql .= " AND entity IN (".getEntity('printbridge_profile').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {
@@ -107,8 +107,8 @@ class ReceiptPrinterExtendedProfile
         $list = array();
 
         $sql = "SELECT rowid, ref, endpoint, token, timeout, verify_ssl";
-        $sql .= " FROM ".MAIN_DB_PREFIX."receiptprinterextended_profile";
-        $sql .= " WHERE entity IN (".getEntity('receiptprinterextended_profile').")";
+        $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_profile";
+        $sql .= " WHERE entity IN (".getEntity('printbridge_profile').")";
         $sql .= " ORDER BY ref ASC";
 
         $resql = $this->db->query($sql);
@@ -152,7 +152,7 @@ class ReceiptPrinterExtendedProfile
             return -1;
         }
 
-        $sql = "INSERT INTO ".MAIN_DB_PREFIX."receiptprinterextended_profile";
+        $sql = "INSERT INTO ".MAIN_DB_PREFIX."printbridge_profile";
         $sql .= " (entity, ref, endpoint, token, timeout, verify_ssl, datec)";
         $sql .= " VALUES (";
         $sql .= ((int) $conf->entity).",";
@@ -170,7 +170,7 @@ class ReceiptPrinterExtendedProfile
             return -1;
         }
 
-        $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX.'receiptprinterextended_profile');
+        $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX.'printbridge_profile');
 
         return 1;
     }
@@ -188,13 +188,13 @@ class ReceiptPrinterExtendedProfile
      */
     public function update($id, $endpoint, $token, $timeout, $verifyssl)
     {
-        $sql = "UPDATE ".MAIN_DB_PREFIX."receiptprinterextended_profile SET";
+        $sql = "UPDATE ".MAIN_DB_PREFIX."printbridge_profile SET";
         $sql .= " endpoint = '".$this->db->escape($endpoint)."',";
         $sql .= " token = '".$this->db->escape($token)."',";
         $sql .= " timeout = ".((int) $timeout).",";
         $sql .= " verify_ssl = ".((int) $verifyssl);
         $sql .= " WHERE rowid = ".((int) $id);
-        $sql .= " AND entity IN (".getEntity('receiptprinterextended_profile').")";
+        $sql .= " AND entity IN (".getEntity('printbridge_profile').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {
@@ -213,9 +213,9 @@ class ReceiptPrinterExtendedProfile
      */
     public function delete($id)
     {
-        $sql = "DELETE FROM ".MAIN_DB_PREFIX."receiptprinterextended_profile";
+        $sql = "DELETE FROM ".MAIN_DB_PREFIX."printbridge_profile";
         $sql .= " WHERE rowid = ".((int) $id);
-        $sql .= " AND entity IN (".getEntity('receiptprinterextended_profile').")";
+        $sql .= " AND entity IN (".getEntity('printbridge_profile').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {

@@ -2,18 +2,19 @@
 /**
  * Read/write access to the built-in Receipt Printers module's own printer table
  * (llx_printer_receipt). This module never manages that table's rows in general - the only
- * exception is "adopting" an existing File-type printer, which rewrites its Parameter to
- * printbridge://<ref> so PrintBridge can take over its stream.
+ * exception is "adopting" an existing "Local Printer"-type printer, which rewrites its
+ * Parameter to printbridge://<ref> so PrintBridge can take over its stream.
  *
- * Only File-type printers can ever be adopted. Dummy has no I/O to intercept; Network
- * (fsockopen), Windows (regex-validated destination, then shell/copy) and CUPS
+ * Only "Local Printer"-type printers can ever be adopted. Dummy has no I/O to intercept;
+ * Network (fsockopen), Windows (regex-validated destination, then shell/copy) and CUPS
  * (lpstat/lp via proc_open) never go through fopen(), so none of them can be routed through
  * our printbridge:// stream wrapper. See the README.
  */
-class ReceiptPrinterExtendedBuiltinPrinter
+class PrintBridgeBuiltinPrinter
 {
     /**
-     * fk_type value used by the built-in module for its "File" connector type.
+     * fk_type value used by the built-in module for its "Local Printer" connector type
+     * (internally still named CONNECTOR_FILE_PRINT / FilePrintConnector in Dolibarr/escpos-php).
      */
     const CONNECTOR_FILE = 2;
 
@@ -38,7 +39,7 @@ class ReceiptPrinterExtendedBuiltinPrinter
     }
 
     /**
-     * Fetch all File-type printers defined in the built-in module - the only ones that can
+     * Fetch all "Local Printer"-type printers defined in the built-in module - the only ones that can
      * ever be adopted by PrintBridge.
      *
      * @return array<int,array<string,mixed>> List of printers as plain arrays
@@ -68,7 +69,7 @@ class ReceiptPrinterExtendedBuiltinPrinter
     }
 
     /**
-     * Point an existing File-type printer's Parameter at printbridge://<ref>, overwriting
+     * Point an existing "Local Printer"-type printer's Parameter at printbridge://<ref>, overwriting
      * whatever local path it held before.
      *
      * @param int    $printerid Row id in llx_printer_receipt
