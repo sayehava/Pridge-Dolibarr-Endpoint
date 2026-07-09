@@ -35,6 +35,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once __DIR__.'/../class/printbridgeprofile.class.php';
 require_once __DIR__.'/../class/printbridgebuiltinprinter.class.php';
+require_once __DIR__.'/../class/printbridgelog.class.php';
 
 // Load translation files required by the page. The @printbridge suffix is required for
 // custom-module lang files - without it Dolibarr looks in core's own langs/ directory,
@@ -58,6 +59,7 @@ $builtinprinterid = GETPOSTINT('builtinprinterid');
 
 $profile = new PrintBridgeProfile($db);
 $builtinprinter = new PrintBridgeBuiltinPrinter($db);
+$printbridgelog = new PrintBridgeLog($db);
 
 
 /*
@@ -316,5 +318,65 @@ print '</form>';
 
 print '<br>';
 print '<span class="opacitymedium">'.$langs->trans('ProfileParameterInstructions').'</span>';
+
+print '<br><br>';
+
+
+// Recent prints (test log)
+
+print load_fiche_titre($langs->trans('RecentPrints'), '', '');
+
+print '<span class="opacitymedium">'.$langs->trans('RecentPrintsHelp', PrintBridgeLog::MAX_ENTRIES).'</span><br><br>';
+
+print '<table class="noborder centpercent">';
+print '<tr class="liste_titre">';
+print '<td>'.$langs->trans('Date').'</td>';
+print '<td>'.$langs->trans('ProfileRef').'</td>';
+print '<td>'.$langs->trans('Endpoint').'</td>';
+print '<td>'.$langs->trans('Result').'</td>';
+print '<td>'.$langs->trans('Size').'</td>';
+print '<td></td>';
+print '</tr>';
+
+$logentries = $printbridgelog->fetchLast();
+if (empty($logentries)) {
+    print '<tr class="oddeven"><td colspan="6">'.$langs->trans('NoLogEntries').'</td></tr>';
+}
+
+foreach ($logentries as $logline) {
+    if ($logline['endpoint'] === '') {
+        $result = $langs->trans('LogResultNoEndpoint');
+    } elseif ($logline['success']) {
+        $result = $langs->trans('LogResultOk', $logline['httpcode']);
+    } else {
+        $result = $langs->trans('LogResultFailed', $logline['httpcode']);
+    }
+
+    $previewtext = PrintBridgeLog::naiveTextPreview($printbridgelog->fetchContent($logline['rowid']));
+
+    print '<tr class="oddeven">';
+    print '<td>'.dol_print_date($logline['datec'], 'dayhour').'</td>';
+    print '<td>'.dol_escape_htmltag($logline['profile_ref']).'</td>';
+    print '<td>'.dol_escape_htmltag($logline['endpoint']).'</td>';
+    print '<td>'.$result.'</td>';
+    print '<td>'.((int) $logline['size']).'</td>';
+    print '<td><button type="button" class="button smallpaddingimp" data-preview="'.dol_escape_htmltag($previewtext).'" onclick="printbridgeShowPreview(this)">'.$langs->trans('Preview').'</button></td>';
+    print '</tr>';
+}
+
+print '</table>';
+
+print '<dialog id="printbridgepreviewdialog" style="max-width:600px;width:90%;">';
+print '<form method="dialog">';
+print '<pre id="printbridgepreviewbody" style="white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow:auto;"></pre>';
+print '<button type="submit" class="button">'.$langs->trans('Close').'</button>';
+print '</form>';
+print '</dialog>';
+print '<script>
+function printbridgeShowPreview(btn) {
+    document.getElementById("printbridgepreviewbody").textContent = btn.getAttribute("data-preview");
+    document.getElementById("printbridgepreviewdialog").showModal();
+}
+</script>';
 
 llxFooter();
