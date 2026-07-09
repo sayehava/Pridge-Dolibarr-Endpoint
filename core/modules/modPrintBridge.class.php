@@ -1,6 +1,6 @@
 <?php
 /*
- * Module descriptor for Receipt Printers - Extended (PrintBridge).
+ * Module descriptor for Print Bridge.
  *
  * This module does not clone or conflict with Dolibarr's built-in Receipt Printers module.
  * It only adds an HTTP transport ("PrintBridge") that the built-in module's existing "Local
@@ -11,9 +11,9 @@
 include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
 
 /**
- * Description and activation file for module Receipt Printers - Extended.
+ * Description and activation file for module Print Bridge.
  */
-class modReceiptPrinterExtended extends DolibarrModules
+class modPrintBridge extends DolibarrModules
 {
     /**
      * Constructor.
@@ -27,8 +27,8 @@ class modReceiptPrinterExtended extends DolibarrModules
         $this->family = 'interface';
         $this->module_position = '53';
         $this->name = preg_replace('/^mod/i', '', get_class($this));
-        $this->description = 'ReceiptPrinterExtendedDesc';
-        $this->descriptionlong = 'ReceiptPrinterExtendedDescLong';
+        $this->description = 'PrintBridgeDesc';
+        $this->descriptionlong = 'PrintBridgeDescLong';
         $this->editor_name = 'Sayeh Ava Pazouki';
         $this->editor_url = '';
         $this->version = '0.1.0';
@@ -37,9 +37,9 @@ class modReceiptPrinterExtended extends DolibarrModules
 
         // Where the bundled PrintBridge receiver (printbridgereceiver.php) records the last
         // ticket it got, so the admin page can show proof the round trip actually worked.
-        $this->dirs = array('/receiptprinterextended');
+        $this->dirs = array('/printbridge');
 
-        $this->config_page_url = array('receiptprinterextended.php@receiptprinterextended');
+        $this->config_page_url = array('printbridge.php@printbridge');
 
         $this->hidden = false;
         $this->depends = array();
@@ -50,9 +50,9 @@ class modReceiptPrinterExtended extends DolibarrModules
         $this->conflictwith = array();
         $this->phpmin = array(7, 4);
         $this->need_dolibarr_version = array(16, 0);
-        $this->langfiles = array('receiptprinterextended@receiptprinterextended');
+        $this->langfiles = array('printbridge@printbridge');
 
-        // Claim the 'all' hook context so class/actions_receiptprinterextended.class.php is
+        // Claim the 'all' hook context so class/actions_printbridge.class.php is
         // instantiated on every request, early enough to register the printbridge:// stream
         // wrapper before any page can attempt to print a receipt. See the README.
         $this->module_parts = array(
@@ -95,7 +95,7 @@ class modReceiptPrinterExtended extends DolibarrModules
     {
         global $conf;
 
-        $result = $this->_load_tables('/receiptprinterextended/install/mysql/');
+        $result = $this->_load_tables('/printbridge/install/mysql/');
         if ($result < 0) {
             return -1;
         }
@@ -109,7 +109,7 @@ class modReceiptPrinterExtended extends DolibarrModules
             dolibarr_set_const(
                 $this->db,
                 'PRINTBRIDGE_DEFAULT_ENDPOINT',
-                dol_buildpath('/receiptprinterextended/printbridgereceiver.php', 2),
+                dol_buildpath('/printbridge/printbridgereceiver.php', 2),
                 'chaine',
                 0,
                 '',
