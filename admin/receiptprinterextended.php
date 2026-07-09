@@ -36,8 +36,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 require_once __DIR__.'/../class/receiptprinterextendedprofile.class.php';
 require_once __DIR__.'/../class/receiptprinterextendedbuiltinprinter.class.php';
 
-// Load translation files required by the page
-$langs->loadLangs(array('admin', 'receiptprinterextended'));
+// Load translation files required by the page. The @receiptprinterextended suffix is
+// required for custom-module lang files - without it Dolibarr looks in core's own langs/
+// directory, silently fails to find it, and every key below falls back to its raw
+// (unspaced PascalCase) name.
+$langs->loadLangs(array('admin', 'receiptprinterextended@receiptprinterextended'));
 
 if (!$user->admin) {
     accessforbidden();
