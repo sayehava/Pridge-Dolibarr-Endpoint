@@ -198,4 +198,22 @@ class PrintBridgeServer
     {
         return rtrim($this->baseUrl, '/').'/api/plugin/jobs';
     }
+
+    /**
+     * Build <option> tags for a server picker, with a leading "no server" choice.
+     *
+     * @param array<int,array<string,mixed>> $servers   Servers from fetchAll()
+     * @param int                             $selected  Currently selected server id, 0 for none
+     * @param string                          $nonelabel Label for the "no server" option
+     * @return string
+     */
+    public static function buildOptions($servers, $selected, $nonelabel)
+    {
+        $html = '<option value="0"'.($selected == 0 ? ' selected' : '').'>'.dol_escape_htmltag($nonelabel).'</option>';
+        foreach ($servers as $s) {
+            $html .= '<option value="'.((int) $s['rowid']).'"'.($selected == $s['rowid'] ? ' selected' : '').'>'.dol_escape_htmltag($s['name']).'</option>';
+        }
+
+        return $html;
+    }
 }
