@@ -1,10 +1,26 @@
 # Dolibarr language file - Source file is en_US - printbridge
 # Language file for the Print Bridge module.
 PrintBridgeDesc=Send receipt tickets to an external print collector over HTTPS
-PrintBridgeDescLong=Print Bridge adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket over HTTPS to an external print collector, instead of writing to a local file. No auth token or SSL verification setting - PrintBridge is meant to reach a collector inside the same trusted Dolibarr environment. Configure PrintBridge profiles below, then reference them from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
+PrintBridgeDescLong=Print Bridge adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket as a job to a PrintBridge Server, instead of writing to a local file. Add your server(s) below, then create a profile picking which server and endpoint token to use, and reference it from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
 PrintBridgeDefaults=Default settings
+PrintBridgeDefaultsHelp=Used whenever a profile leaves the matching field blank. A default server (with a default endpoint token) is the normal setup; the fallback endpoint URL only matters when no server resolves at all (profile or default) - e.g. for the bundled test receiver.
+PrintBridgeServers=PrintBridge servers
+PrintBridgeServersHelp=A server is a PrintBridge Server instance's base URL (e.g. https://printbridge.example.com). Profiles pick which server to submit print jobs to; the plugin API path (<base URL>/api/plugin/jobs) is added automatically.
 PrintBridgeProfiles=PrintBridge profiles
-DefaultEndpoint=Default endpoint URL
+ServerName=Name
+ServerBaseUrl=Base URL
+ServerAdded=Server added
+ServerUpdated=Server updated
+ServerDeleted=Server deleted
+ServerNameEmpty=Server name cannot be empty
+ServerBaseUrlEmpty=Server base URL cannot be empty
+Server=Server
+DefaultServer=Default server
+DefaultEndpointToken=Default endpoint token
+NoServerUseRawEndpoint=No server (use fallback endpoint)
+EndpointToken=Endpoint token
+FallbackEndpoint=Fallback endpoint URL
+DefaultEndpoint=Fallback endpoint URL (default)
 DefaultTimeout=Default timeout (seconds)
 ProfileRef=Profile id
 ProfileRefHelp=Short id, used as printbridge://<id>
@@ -36,3 +52,5 @@ LogResultOk=Forwarded (HTTP %s)
 LogResultFailed=Forward failed (HTTP %s)
 LogResultNoEndpoint=No endpoint configured - stored only
 Preview=Preview
+TicketPreview=Ticket preview
+ServerResponse=Server response
