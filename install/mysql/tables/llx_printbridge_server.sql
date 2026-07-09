@@ -1,0 +1,9 @@
+CREATE TABLE llx_printbridge_server
+(
+    rowid       INTEGER AUTO_INCREMENT PRIMARY KEY,
+    entity      INTEGER DEFAULT 1 NOT NULL,
+    name        VARCHAR(128) NOT NULL,
+    base_url    VARCHAR(255) NOT NULL,
+    datec       DATETIME NULL,
+    tms         TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=innodb;
