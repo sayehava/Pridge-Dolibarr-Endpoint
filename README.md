@@ -42,12 +42,22 @@ used for this instead.
    (e.g. `receipt_1`) and, if needed, override the endpoint URL / auth token / timeout / SSL
    verification for that specific profile. Anything left blank falls back to the module-wide
    defaults set on the same page.
-3. Go to **Setup > Receipt Printers** (the built-in module) and create or edit a printer with
-   connector type **File**, using `printbridge://<profile-id>` as its Parameter value - the
-   admin page shows this exact string next to each profile, ready to copy.
+3. Either:
+   - Go to **Setup > Receipt Printers** (the built-in module) and create or edit a printer
+     with connector type **File**, using `printbridge://<profile-id>` as its Parameter value -
+     the admin page shows this exact string next to each profile, ready to copy; or
+   - On this module's setup page, use **Adopt an existing printer**: it lists the built-in
+     module's printers that use connector type **File** (the only type PrintBridge can take
+     over - see "Why this exists") with a one-click Adopt action. Adopting creates a matching
+     profile automatically (ref `printer_<id>`) and rewrites that printer's Parameter to
+     `printbridge://printer_<id>`, **overwriting its previous Parameter value**.
 4. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
    printed from that terminal are now forwarded over HTTPS to your print collector instead of
    being written to a local file.
+
+Printers using connector type Dummy, Network, Windows or CUPS cannot be adopted or manually
+pointed at `printbridge://` - none of them route through the `fopen()` call PrintBridge
+intercepts (see `the README`).
 
 ## Data format
 
