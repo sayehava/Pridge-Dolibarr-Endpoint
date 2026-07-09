@@ -1,4 +1,4 @@
-# Receipt Printers - Extended (PrintBridge)
+# Print Bridge
 
 A companion Dolibarr module that adds an HTTP-based printer driver, **PrintBridge**, usable
 from Dolibarr's built-in **Receipt Printers** module and from **TakePOS**, without patching
@@ -39,9 +39,9 @@ used for this instead.
 
 ## Setup
 
-1. Copy this module's folder into `htdocs/custom/receiptprinterextended`, then enable
-   **Receipt Printers - Extended** in **Home > Setup > Modules/Applications**. Make sure the
-   built-in **Receipt Printers** module is also enabled - this module does not replace it.
+1. Copy this module's folder into `htdocs/custom/printbridge`, then enable **Print Bridge** in
+   **Home > Setup > Modules/Applications**. Make sure the built-in **Receipt Printers** module
+   is also enabled - this module does not replace it.
 2. Go to this module's setup page and create a **PrintBridge profile**: give it a short id
    (e.g. `receipt_1`) and, if needed, override the endpoint URL / auth token / timeout / SSL
    verification for that specific profile. Anything left blank falls back to the module-wide
@@ -81,8 +81,8 @@ understand/relay ESC/POS bytes to a real or virtual thermal printer.
 `printbridgereceiver.php` at the module root is a minimal, unauthenticated-by-default (see
 below) endpoint that PrintBridge points at automatically until you configure a real one. It
 never prints anything - it writes what it received to
-`documents/receiptprinterextended/lastreceived.bin` and records the last profile ref, byte
-count and timestamp so the setup page can show proof a print actually reached *something*.
+`documents/printbridge/lastreceived.bin` and records the last profile ref, byte count and
+timestamp so the setup page can show proof a print actually reached *something*.
 If you set `PRINTBRIDGE_DEFAULT_TOKEN`, the bundled receiver enforces it like a real collector
 would; if you leave it blank, it accepts any POST - fine for local testing, not for exposing
 to the internet unset.
