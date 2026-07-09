@@ -1,14 +1,18 @@
 <?php
 /**
- * Minimal HTTP client that forwards a buffered ESC/POS ticket to a PrintBridge endpoint.
+ * Minimal HTTP client that submits a buffered ESC/POS ticket as a job to a PrintBridge Server,
+ * matching its plugin API:
+ *
+ *   POST <url>
+ *   Authorization: Bearer <endpoint token>   (omitted if no token resolved)
+ *   Content-Type: application/octet-stream
+ *   X-PrintBridge-Metadata: {"...":"..."}    (optional JSON, omitted if no metadata given)
+ *
+ *   <raw ESC/POS bytes as the request body>
  *
  * The bytes handled here are always a raw ESC/POS binary command stream (never a PDF or an
- * image file) - see the README "Data format". The receiving endpoint is expected to relay them
- * to a real or virtual ESC/POS printer.
- *
- * No auth token, no SSL verification toggle: PrintBridge is meant to reach a collector inside
- * the same trusted Dolibarr environment, not an arbitrary internet endpoint. Standard cURL
- * defaults apply (certificates are verified when the endpoint is HTTPS).
+ * image file) - see the README "Data format". Per the API's own guidance, the token is only
+ * ever sent as a header, never in the URL.
  */
 class PrintBridgeClient
 {
@@ -18,33 +22,44 @@ class PrintBridgeClient
     public $lastHttpCode = 0;
 
     /**
-     * Send raw ESC/POS bytes to the endpoint configured on the given profile.
-     *
-     * @param PrintBridgeProfile $profile Profile with endpoint/timeout resolved
-     * @param string             $data    Raw ESC/POS bytes
-     * @return bool True on HTTP 2xx, false otherwise (see $this->error)
+     * @var string Response body from the last send() call
      */
-    public function send($profile, $data)
+    public $lastResponseBody = '';
+
+    /**
+     * Submit raw ESC/POS bytes as a job.
+     *
+     * @param string               $url      Full job submission URL
+     * @param string               $token    Bearer token, empty to omit the Authorization header
+     * @param int                  $timeout  Request timeout in seconds
+     * @param string               $data     Raw ESC/POS bytes
+     * @param array<string,string> $metadata Optional metadata, sent as JSON in X-PrintBridge-Metadata
+     * @return bool True on HTTP 2xx, false otherwise (see $this->lastHttpCode/$this->lastResponseBody)
+     */
+    public function send($url, $token, $timeout, $data, $metadata = array())
     {
         $this->lastHttpCode = 0;
+        $this->lastResponseBody = '';
 
-        $endpoint = $profile->getEndpoint();
-        if (empty($endpoint)) {
-            dol_syslog("PrintBridgeClient::send: no endpoint configured for profile '".$profile->ref."'", LOG_ERR);
+        if (empty($url)) {
+            dol_syslog("PrintBridgeClient::send: no URL to submit to", LOG_ERR);
             return false;
         }
 
-        $headers = array(
-            'Content-Type: application/octet-stream',
-            'X-PrintBridge-Profile: '.$profile->ref,
-        );
+        $headers = array('Content-Type: application/octet-stream');
+        if (!empty($token)) {
+            $headers[] = 'Authorization: Bearer '.$token;
+        }
+        if (!empty($metadata)) {
+            $headers[] = 'X-PrintBridge-Metadata: '.json_encode($metadata);
+        }
 
-        $ch = curl_init($endpoint);
+        $ch = curl_init($url);
         curl_setopt_array($ch, array(
             CURLOPT_POST => true,
             CURLOPT_POSTFIELDS => $data,
             CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_TIMEOUT => $profile->getTimeout(),
+            CURLOPT_TIMEOUT => $timeout,
             CURLOPT_RETURNTRANSFER => true,
         ));
 
@@ -54,10 +69,11 @@ class PrintBridgeClient
         curl_close($ch);
 
         $this->lastHttpCode = (int) $httpcode;
+        $this->lastResponseBody = ($result !== false) ? $result : $curlerror;
 
         if ($result === false || $httpcode < 200 || $httpcode >= 300) {
             dol_syslog(
-                "PrintBridgeClient::send: failed for profile '".$profile->ref."' http_code=".$httpcode." error=".$curlerror,
+                "PrintBridgeClient::send: failed url=".$url." http_code=".$httpcode." error=".$curlerror." response=".$this->lastResponseBody,
                 LOG_ERR
             );
             return false;
