@@ -31,10 +31,25 @@ This module works around both limitations without touching any core file:
   request) - not a core patch.
 
 The built-in Receipt Printers module must stay enabled: it owns the printer list, the ticket
-templates, and the TakePOS integration this module plugs into. This module owns nothing but
-PrintBridge profiles (endpoint/timeout settings) and the stream wrapper. No auth token, no SSL
-verification setting - PrintBridge is meant to reach a collector inside the same trusted
-Dolibarr environment, not an arbitrary internet endpoint.
+templates, and the TakePOS integration this module plugs into. This module owns PrintBridge
+**servers** (base URLs), **profiles** (which server + endpoint token + timeout a printer
+uses), the rolling test log, and the stream wrapper.
+
+PrintBridge submits jobs to a real PrintBridge Server's plugin API:
+
+```
+POST <server base URL>/api/plugin/jobs
+Authorization: Bearer <endpoint token>
+Content-Type: application/octet-stream
+X-PrintBridge-Metadata: {"source":"dolibarr-printbridge","profile":"<ref>"}
+
+<raw ESC/POS bytes>
+```
+
+Per that API's own guidance, the token is only ever sent as a header, never in the URL. If no
+server resolves (profile and module default both unset), PrintBridge falls back to a plain
+raw endpoint URL with no token - this is only meant for simple test receivers like the bundled
+one below, not the real plugin API.
 
 See `the README` for the full technical design, including why a Dummy-type connector cannot be
 used for this instead.
@@ -44,16 +59,19 @@ used for this instead.
 1. Copy this module's folder into `htdocs/custom/printbridge`, then enable **Print Bridge** in
    **Home > Setup > Modules/Applications**. Make sure the built-in **Receipt Printers** module
    is also enabled - this module does not replace it.
-2. Go to this module's setup page and create a **PrintBridge profile**: give it a short id
-   (e.g. `receipt_1`) and, if needed, override the endpoint URL / timeout for that specific
-   profile. Anything left blank falls back to the module-wide defaults set on the same page.
-   On activation, the default endpoint is automatically set to this module's own **bundled
-   receiver** (`printbridgereceiver.php`) - it doesn't print anything, it just records what it
-   received (profile ref, byte count, timestamp - shown on the setup page) so you can verify
-   the whole round trip works before your real print collector exists. Replace
-   `PRINTBRIDGE_DEFAULT_ENDPOINT` (or a profile's own endpoint override) with your real
-   collector's URL when it's ready.
-3. Either:
+2. On this module's setup page, add a **PrintBridge server**: a name and your PrintBridge
+   Server's base URL (e.g. `https://printbridge.example.com`) - the plugin API path
+   (`/api/plugin/jobs`) is added automatically.
+3. Create a **PrintBridge profile**: give it a short id (e.g. `receipt_1`), pick the server
+   from step 2, and paste in that destination's own endpoint token (the bearer token your
+   PrintBridge Server issued for that specific print destination). Timeout can be left blank
+   to use the module-wide default. Anything left blank on a profile falls back to the
+   module-wide defaults set at the top of the page - including a default server/token, so a
+   single-printer setup doesn't need per-profile overrides at all. Until you set a default
+   server, the default endpoint is the module's own **bundled receiver**
+   (`printbridgereceiver.php`) - it doesn't print anything, it just records what it received
+   (shown on the setup page) so you can verify the round trip before a real server exists.
+4. Either:
    - Go to **Setup > Receipt Printers** (the built-in module) and create or edit a printer
      with connector type **Local Printer**, using `printbridge://<profile-id>` as its
      Parameter value - the admin page shows this exact string next to each profile, ready to
@@ -66,8 +84,8 @@ used for this instead.
      **Unadopt** button next to it clears the Parameter back to empty if you change your mind
      - it cannot restore the printer's previous value, since that was never saved, but it lets
      you reconfigure the printer from scratch. The matching profile is left untouched.
-4. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
-   printed from that terminal are now forwarded over HTTPS to your print collector instead of
+5. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
+   printed from that terminal are now submitted as jobs to your PrintBridge Server instead of
    being written to a local file.
 
 Printers using connector type Dummy Printer, Network Printer, Local Windows Printer or Cups
@@ -104,11 +122,32 @@ PrintBridge, regardless of what happened to them:
 
 Each row has a **Preview** button (a small modal) showing the ticket's text with ESC/POS
 control bytes and raster image data stripped out - not a real receipt rendering, just enough
-to eyeball whether the right content went out. Entries beyond the last 10 are pruned
+to eyeball whether the right content went out - plus the server's own response body, so a
+failure like an HTTP 403 shows its explanation right there instead of requiring server-side
+log access. Entries beyond the last 10 are pruned
 automatically.
+
+## Upgrading an existing test install
+
+Dolibarr only runs a module's `CREATE TABLE` once - it does not add new columns to a table
+that already exists. If you installed this module before servers/tokens or response logging
+existed, run this once against your existing database:
+
+```sql
+ALTER TABLE llx_printbridge_profile
+    ADD COLUMN server_id INTEGER DEFAULT 0 NOT NULL,
+    ADD COLUMN endpoint_token VARCHAR(255) DEFAULT '' NOT NULL;
+ALTER TABLE llx_printbridge_log
+    ADD COLUMN response TEXT NOT NULL;
+```
+
+(If you also still have the very first version's `token`/`verify_ssl` columns on
+`llx_printbridge_profile` from before those were removed, `DROP COLUMN token, DROP COLUMN
+verify_ssl` in the same statement.)
 
 ## Status
 
-Core mechanism (module descriptor, hook, stream wrapper, HTTP client, profile storage, admin
-page, bundled test receiver, recent-prints log) is in place. Not yet tested against a live
-Dolibarr instance / TakePOS terminal.
+Core mechanism (module descriptor, hook, stream wrapper, HTTP client, servers, profiles,
+admin page, bundled test receiver, recent-prints log) is in place and has been tested against
+a live Dolibarr instance (module activation, adopt/unadopt, TakePOS test print). The
+server/token rework in this session has not been retested live yet.
