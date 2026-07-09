@@ -2,11 +2,13 @@
 /**
  * CRUD for PrintBridge profiles (table llx_printbridge_profile).
  *
- * A profile is what a printer's Parameter value printbridge://<ref> resolves to: which
- * PrintBridge endpoint/timeout to use. Any field left empty/unset falls back to the
- * module-wide PRINTBRIDGE_DEFAULT_* constants (see admin page). No auth token and no SSL
- * verification toggle - PrintBridge is meant to reach a collector inside the same trusted
- * Dolibarr environment, not an arbitrary internet endpoint.
+ * A profile is what a printer's Parameter value printbridge://<ref> resolves to. It picks a
+ * PrintBridgeServer to submit jobs to (the real PrintBridge Server's plugin API always lives
+ * at <server base_url>/api/plugin/jobs) plus its own endpoint token - the bearer token that
+ * identifies which destination on that server the job belongs to. If no server is selected
+ * (profile or module default), the raw `endpoint` field is used instead as a fallback
+ * (e.g. for the bundled test receiver, which doesn't implement the real plugin API at all).
+ * Any field left empty/unset falls back to the module-wide PRINTBRIDGE_DEFAULT_* constants.
  */
 class PrintBridgeProfile
 {
@@ -26,7 +28,19 @@ class PrintBridgeProfile
     public $ref = '';
 
     /**
-     * @var string Endpoint override, empty string means "use module default"
+     * @var int PrintBridgeServer row id to submit jobs to, 0 means "use module default"
+     */
+    public $serverId = 0;
+
+    /**
+     * @var string Endpoint token (bearer) for this profile's destination on that server,
+     *             empty string means "use module default"
+     */
+    public $endpointToken = '';
+
+    /**
+     * @var string Raw endpoint URL fallback, only used when no server resolves. Empty string
+     *             means "use module default"
      */
     public $endpoint = '';
 
@@ -63,7 +77,7 @@ class PrintBridgeProfile
      */
     public function fetchByRef($ref)
     {
-        $sql = "SELECT rowid, ref, endpoint, timeout";
+        $sql = "SELECT rowid, ref, server_id, endpoint_token, endpoint, timeout";
         $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_profile";
         $sql .= " WHERE ref = '".$this->db->escape($ref)."'";
         $sql .= " AND entity IN (".getEntity('printbridge_profile').")";
@@ -81,6 +95,8 @@ class PrintBridgeProfile
 
         $this->id = (int) $obj->rowid;
         $this->ref = $obj->ref;
+        $this->serverId = (int) $obj->server_id;
+        $this->endpointToken = $obj->endpoint_token;
         $this->endpoint = $obj->endpoint;
         $this->timeout = (int) $obj->timeout;
 
@@ -96,7 +112,7 @@ class PrintBridgeProfile
     {
         $list = array();
 
-        $sql = "SELECT rowid, ref, endpoint, timeout";
+        $sql = "SELECT rowid, ref, server_id, endpoint_token, endpoint, timeout";
         $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_profile";
         $sql .= " WHERE entity IN (".getEntity('printbridge_profile').")";
         $sql .= " ORDER BY ref ASC";
@@ -107,6 +123,8 @@ class PrintBridgeProfile
                 $list[] = array(
                     'rowid' => (int) $obj->rowid,
                     'ref' => $obj->ref,
+                    'server_id' => (int) $obj->server_id,
+                    'endpoint_token' => $obj->endpoint_token,
                     'endpoint' => $obj->endpoint,
                     'timeout' => (int) $obj->timeout,
                 );
@@ -119,12 +137,14 @@ class PrintBridgeProfile
     /**
      * Create a profile.
      *
-     * @param string $ref      Short id used as printbridge://<ref>
-     * @param string $endpoint Endpoint override, empty to use PRINTBRIDGE_DEFAULT_ENDPOINT
-     * @param int    $timeout  Timeout override in seconds, 0 to use PRINTBRIDGE_DEFAULT_TIMEOUT
+     * @param string $ref           Short id used as printbridge://<ref>
+     * @param int    $serverid      PrintBridgeServer row id, 0 to use PRINTBRIDGE_DEFAULT_SERVER_ID
+     * @param string $endpointtoken Bearer token override, empty to use PRINTBRIDGE_DEFAULT_TOKEN
+     * @param string $endpoint      Raw endpoint URL fallback, empty to use PRINTBRIDGE_DEFAULT_ENDPOINT
+     * @param int    $timeout       Timeout override in seconds, 0 to use PRINTBRIDGE_DEFAULT_TIMEOUT
      * @return int >0 if OK, <=0 if KO
      */
-    public function create($ref, $endpoint, $timeout)
+    public function create($ref, $serverid, $endpointtoken, $endpoint, $timeout)
     {
         global $conf;
 
@@ -139,10 +159,12 @@ class PrintBridgeProfile
         }
 
         $sql = "INSERT INTO ".MAIN_DB_PREFIX."printbridge_profile";
-        $sql .= " (entity, ref, endpoint, timeout, datec)";
+        $sql .= " (entity, ref, server_id, endpoint_token, endpoint, timeout, datec)";
         $sql .= " VALUES (";
         $sql .= ((int) $conf->entity).",";
         $sql .= " '".$this->db->escape($ref)."',";
+        $sql .= " ".((int) $serverid).",";
+        $sql .= " '".$this->db->escape($endpointtoken)."',";
         $sql .= " '".$this->db->escape($endpoint)."',";
         $sql .= " ".((int) $timeout).",";
         $sql .= " '".$this->db->idate(dol_now())."'";
@@ -163,14 +185,18 @@ class PrintBridgeProfile
      * Update a profile's settings. The ref itself is not editable once created, so the
      * printbridge://<ref> value already wired into a printer's Parameter field never breaks.
      *
-     * @param int    $id       Profile row id
-     * @param string $endpoint Endpoint override
-     * @param int    $timeout  Timeout override
+     * @param int    $id            Profile row id
+     * @param int    $serverid      PrintBridgeServer row id, 0 to use module default
+     * @param string $endpointtoken Bearer token override
+     * @param string $endpoint      Raw endpoint URL fallback
+     * @param int    $timeout       Timeout override
      * @return int >0 if OK, <=0 if KO
      */
-    public function update($id, $endpoint, $timeout)
+    public function update($id, $serverid, $endpointtoken, $endpoint, $timeout)
     {
         $sql = "UPDATE ".MAIN_DB_PREFIX."printbridge_profile SET";
+        $sql .= " server_id = ".((int) $serverid).",";
+        $sql .= " endpoint_token = '".$this->db->escape($endpointtoken)."',";
         $sql .= " endpoint = '".$this->db->escape($endpoint)."',";
         $sql .= " timeout = ".((int) $timeout);
         $sql .= " WHERE rowid = ".((int) $id);
@@ -207,13 +233,45 @@ class PrintBridgeProfile
     }
 
     /**
-     * Resolve the endpoint to use: profile override or module default.
+     * Resolve which server row id to submit jobs to: profile override or module default.
+     * 0 means "no server - use the raw endpoint fallback instead".
+     *
+     * @return int
+     */
+    public function resolveServerId()
+    {
+        return $this->serverId > 0 ? $this->serverId : getDolGlobalInt('PRINTBRIDGE_DEFAULT_SERVER_ID');
+    }
+
+    /**
+     * Resolve the final job submission URL: the resolved server's plugin API URL if one
+     * resolves, otherwise the raw endpoint fallback (profile override or module default).
      *
      * @return string
      */
-    public function getEndpoint()
+    public function resolveEndpointUrl()
     {
+        $serverid = $this->resolveServerId();
+        if ($serverid > 0) {
+            require_once __DIR__.'/printbridgeserver.class.php';
+            $server = new PrintBridgeServer($this->db);
+            if ($server->fetch($serverid) > 0) {
+                return $server->getJobsUrl();
+            }
+        }
+
         return $this->endpoint !== '' ? $this->endpoint : getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT');
+    }
+
+    /**
+     * Resolve the bearer token to use: profile override or module default. Empty when using
+     * the raw endpoint fallback with no token configured (e.g. the bundled test receiver).
+     *
+     * @return string
+     */
+    public function resolveToken()
+    {
+        return $this->endpointToken !== '' ? $this->endpointToken : getDolGlobalString('PRINTBRIDGE_DEFAULT_TOKEN');
     }
 
     /**
