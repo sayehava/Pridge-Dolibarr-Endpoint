@@ -37,6 +37,12 @@ class PrintBridgeLog
     }
 
     /**
+     * Maximum length of the stored response body. Just enough to see a server's error message
+     * (e.g. why a request got a 403), not meant to store large payloads.
+     */
+    const MAX_RESPONSE_LENGTH = 2000;
+
+    /**
      * Record one ticket, then prune anything beyond the MAX_ENTRIES most recent rows.
      *
      * @param string $profileref Profile ref the ticket was for (may be unknown/blank)
@@ -44,14 +50,15 @@ class PrintBridgeLog
      * @param bool   $success    Whether the forward succeeded (always false if $endpoint is empty)
      * @param int    $httpcode   HTTP status code from the forward attempt, 0 if none was attempted
      * @param string $rawdata    Raw ESC/POS bytes
+     * @param string $response   Response body from the forward attempt, empty if none was attempted
      * @return int >0 if OK, <=0 if KO
      */
-    public function record($profileref, $endpoint, $success, $httpcode, $rawdata)
+    public function record($profileref, $endpoint, $success, $httpcode, $rawdata, $response = '')
     {
         global $conf;
 
         $sql = "INSERT INTO ".MAIN_DB_PREFIX."printbridge_log";
-        $sql .= " (entity, datec, profile_ref, endpoint, success, httpcode, size, content)";
+        $sql .= " (entity, datec, profile_ref, endpoint, success, httpcode, size, content, response)";
         $sql .= " VALUES (";
         $sql .= ((int) $conf->entity).",";
         $sql .= " '".$this->db->idate(dol_now())."',";
@@ -60,7 +67,8 @@ class PrintBridgeLog
         $sql .= " ".($success ? 1 : 0).",";
         $sql .= " ".((int) $httpcode).",";
         $sql .= " ".((int) strlen($rawdata)).",";
-        $sql .= " '".$this->db->escape(base64_encode($rawdata))."'";
+        $sql .= " '".$this->db->escape(base64_encode($rawdata))."',";
+        $sql .= " '".$this->db->escape(substr($response, 0, self::MAX_RESPONSE_LENGTH))."'";
         $sql .= ")";
 
         $resql = $this->db->query($sql);
@@ -151,6 +159,31 @@ class PrintBridgeLog
         }
 
         return base64_decode($obj->content);
+    }
+
+    /**
+     * Fetch one entry's stored response body, for the preview action.
+     *
+     * @param int $id Log row id
+     * @return string|null Response body, or null if not found
+     */
+    public function fetchResponse($id)
+    {
+        $sql = "SELECT response FROM ".MAIN_DB_PREFIX."printbridge_log";
+        $sql .= " WHERE rowid = ".((int) $id);
+        $sql .= " AND entity IN (".getEntity('printbridge_log').")";
+
+        $resql = $this->db->query($sql);
+        if (!$resql) {
+            return null;
+        }
+
+        $obj = $this->db->fetch_object($resql);
+        if (!$obj) {
+            return null;
+        }
+
+        return $obj->response;
     }
 
     /**
