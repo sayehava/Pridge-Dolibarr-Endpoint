@@ -9,6 +9,11 @@
 class PrintBridgeClient
 {
     /**
+     * @var int HTTP status code from the last send() call, 0 if none was attempted
+     */
+    public $lastHttpCode = 0;
+
+    /**
      * Send raw ESC/POS bytes to the endpoint configured on the given profile.
      *
      * @param PrintBridgeProfile $profile Profile with endpoint/token/timeout/verifyssl resolved
@@ -17,6 +22,8 @@ class PrintBridgeClient
      */
     public function send($profile, $data)
     {
+        $this->lastHttpCode = 0;
+
         $endpoint = $profile->getEndpoint();
         if (empty($endpoint)) {
             dol_syslog("PrintBridgeClient::send: no endpoint configured for profile '".$profile->ref."'", LOG_ERR);
@@ -49,6 +56,8 @@ class PrintBridgeClient
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlerror = curl_error($ch);
         curl_close($ch);
+
+        $this->lastHttpCode = (int) $httpcode;
 
         if ($result === false || $httpcode < 200 || $httpcode >= 300) {
             dol_syslog(
