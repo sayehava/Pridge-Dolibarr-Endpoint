@@ -1,7 +1,7 @@
-# Dolibarr language file - Source file is en_US - receiptprinterextended
-# Language file for the Receipt Printers - Extended (PrintBridge) module.
-ReceiptPrinterExtendedDesc=Adds an HTTP "PrintBridge" transport for the built-in Receipt Printers module and TakePOS
-ReceiptPrinterExtendedDescLong=Registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" in Dolibarr's built-in Receipt Printers module (Setup > Receipt Printers) can forward its ticket over HTTPS to an external print collector, instead of writing to a local file. Configure PrintBridge profiles below, then reference them from that module's printer setup.
+# Dolibarr language file - Source file is en_US - printbridge
+# Language file for the Print Bridge module.
+PrintBridgeDesc=Send receipt tickets to an external print collector over HTTPS
+PrintBridgeDescLong=Print Bridge adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket over HTTPS to an external print collector, instead of writing to a local file. Configure PrintBridge profiles below, then reference them from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
 PrintBridgeDefaults=Default settings
 PrintBridgeProfiles=PrintBridge profiles
 DefaultEndpoint=Default endpoint URL
