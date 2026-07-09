@@ -1,4 +1,4 @@
-CREATE TABLE llx_receiptprinterextended_profile
+CREATE TABLE llx_printbridge_profile
 (
     rowid       INTEGER AUTO_INCREMENT PRIMARY KEY,
     entity      INTEGER DEFAULT 1 NOT NULL,
