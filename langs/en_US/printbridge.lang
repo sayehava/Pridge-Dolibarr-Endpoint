@@ -1,19 +1,15 @@
 # Dolibarr language file - Source file is en_US - printbridge
 # Language file for the Print Bridge module.
 PrintBridgeDesc=Send receipt tickets to an external print collector over HTTPS
-PrintBridgeDescLong=Print Bridge adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket over HTTPS to an external print collector, instead of writing to a local file. Configure PrintBridge profiles below, then reference them from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
+PrintBridgeDescLong=Print Bridge adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket over HTTPS to an external print collector, instead of writing to a local file. No auth token or SSL verification setting - PrintBridge is meant to reach a collector inside the same trusted Dolibarr environment. Configure PrintBridge profiles below, then reference them from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
 PrintBridgeDefaults=Default settings
 PrintBridgeProfiles=PrintBridge profiles
 DefaultEndpoint=Default endpoint URL
-DefaultToken=Default auth token
 DefaultTimeout=Default timeout (seconds)
-DefaultVerifySSL=Default SSL certificate verification
 ProfileRef=Profile id
 ProfileRefHelp=Short id, used as printbridge://<id>
 Endpoint=Endpoint URL
-Token=Auth token
 Timeout=Timeout (seconds)
-VerifySSL=Verify SSL certificate
 UseDefaultValue=Use default
 ProfileRefEmpty=Profile id cannot be empty
 ProfileRefAlreadyExists=A profile with this id already exists
@@ -28,7 +24,9 @@ AdoptExistingPrintersHelp=Only printers using the built-in module's "Local Print
 NoFileTypePrinterFound=No "Local Printer" type printer found in the built-in Receipt Printers module.
 AlreadyAdopted=Already using PrintBridge
 Adopt=Adopt
+Unadopt=Unadopt
 PrinterAdopted=Printer now using PrintBridge profile '%s'
+PrinterUnadopted=Printer's Parameter cleared. It is no longer wired to PrintBridge - the previous value was not saved and cannot be restored.
 UsingBundledReceiver=The default endpoint is currently this module's own bundled test receiver: it only records what it receives and never actually prints. Replace it with your real print collector's URL before going to production.
 LastReceivedTicket=Last ticket received by the bundled receiver: profile '%s', %s byte(s), %s
 RecentPrints=Recent prints

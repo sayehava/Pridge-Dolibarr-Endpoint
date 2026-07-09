@@ -49,6 +49,7 @@ class ActionsPrintbridge
 
         if (!in_array(PrintBridgeStreamWrapper::PROTOCOL, stream_get_wrappers(), true)) {
             stream_wrapper_register(PrintBridgeStreamWrapper::PROTOCOL, 'PrintBridgeStreamWrapper');
+            dol_syslog("ActionsPrintbridge: registered printbridge:// stream wrapper on ".$_SERVER['PHP_SELF']);
         }
     }
 }

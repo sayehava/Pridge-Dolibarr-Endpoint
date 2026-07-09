@@ -58,6 +58,8 @@ class PrintBridgeStreamWrapper
         $this->buffer = '';
         $this->position = 0;
 
+        dol_syslog("PrintBridgeStreamWrapper::stream_open: path='".$path."' profileRef='".$this->profileRef."'");
+
         return $this->profileRef !== '';
     }
 
@@ -125,8 +127,14 @@ class PrintBridgeStreamWrapper
     public function stream_close()
     {
         if ($this->buffer === '' || $this->profileRef === '') {
+            dol_syslog(
+                "PrintBridgeStreamWrapper::stream_close: nothing to do (buffer="
+                .strlen($this->buffer)." bytes, profileRef='".$this->profileRef."')"
+            );
             return;
         }
+
+        dol_syslog("PrintBridgeStreamWrapper::stream_close: closing, ".strlen($this->buffer)." byte(s) for profile '".$this->profileRef."'");
 
         global $db;
 
@@ -156,7 +164,12 @@ class PrintBridgeStreamWrapper
         }
 
         $log = new PrintBridgeLog($db);
-        $log->record($this->profileRef, $endpoint, $success, $httpcode, $this->buffer);
+        $logresult = $log->record($this->profileRef, $endpoint, $success, $httpcode, $this->buffer);
+
+        dol_syslog(
+            "PrintBridgeStreamWrapper::stream_close: logged (record() returned ".$logresult.")"
+            .($logresult <= 0 ? ", error=".$log->error : '')
+        );
 
         $this->buffer = '';
     }

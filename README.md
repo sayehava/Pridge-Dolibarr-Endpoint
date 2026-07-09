@@ -32,7 +32,9 @@ This module works around both limitations without touching any core file:
 
 The built-in Receipt Printers module must stay enabled: it owns the printer list, the ticket
 templates, and the TakePOS integration this module plugs into. This module owns nothing but
-PrintBridge profiles (endpoint/token/timeout/SSL settings) and the stream wrapper.
+PrintBridge profiles (endpoint/timeout settings) and the stream wrapper. No auth token, no SSL
+verification setting - PrintBridge is meant to reach a collector inside the same trusted
+Dolibarr environment, not an arbitrary internet endpoint.
 
 See `the README` for the full technical design, including why a Dummy-type connector cannot be
 used for this instead.
@@ -43,14 +45,14 @@ used for this instead.
    **Home > Setup > Modules/Applications**. Make sure the built-in **Receipt Printers** module
    is also enabled - this module does not replace it.
 2. Go to this module's setup page and create a **PrintBridge profile**: give it a short id
-   (e.g. `receipt_1`) and, if needed, override the endpoint URL / auth token / timeout / SSL
-   verification for that specific profile. Anything left blank falls back to the module-wide
-   defaults set on the same page. On activation, the default endpoint is automatically set to
-   this module's own **bundled receiver** (`printbridgereceiver.php`) - it doesn't print
-   anything, it just records what it received (profile ref, byte count, timestamp - shown on
-   the setup page) so you can verify the whole round trip works before your real print
-   collector exists. Replace `PRINTBRIDGE_DEFAULT_ENDPOINT` (or a profile's own endpoint
-   override) with your real collector's URL when it's ready.
+   (e.g. `receipt_1`) and, if needed, override the endpoint URL / timeout for that specific
+   profile. Anything left blank falls back to the module-wide defaults set on the same page.
+   On activation, the default endpoint is automatically set to this module's own **bundled
+   receiver** (`printbridgereceiver.php`) - it doesn't print anything, it just records what it
+   received (profile ref, byte count, timestamp - shown on the setup page) so you can verify
+   the whole round trip works before your real print collector exists. Replace
+   `PRINTBRIDGE_DEFAULT_ENDPOINT` (or a profile's own endpoint override) with your real
+   collector's URL when it's ready.
 3. Either:
    - Go to **Setup > Receipt Printers** (the built-in module) and create or edit a printer
      with connector type **Local Printer**, using `printbridge://<profile-id>` as its
@@ -60,7 +62,10 @@ used for this instead.
      module's printers that use connector type **Local Printer** (the only type PrintBridge
      can take over - see "Why this exists") with a one-click Adopt action. Adopting creates a
      matching profile automatically (ref `printer_<id>`) and rewrites that printer's Parameter
-     to `printbridge://printer_<id>`, **overwriting its previous Parameter value**.
+     to `printbridge://printer_<id>`, **overwriting its previous Parameter value**. An
+     **Unadopt** button next to it clears the Parameter back to empty if you change your mind
+     - it cannot restore the printer's previous value, since that was never saved, but it lets
+     you reconfigure the printer from scratch. The matching profile is left untouched.
 4. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
    printed from that terminal are now forwarded over HTTPS to your print collector instead of
    being written to a local file.
@@ -78,14 +83,12 @@ understand/relay ESC/POS bytes to a real or virtual thermal printer.
 
 ## Bundled test receiver
 
-`printbridgereceiver.php` at the module root is a minimal, unauthenticated-by-default (see
-below) endpoint that PrintBridge points at automatically until you configure a real one. It
-never prints anything - it writes what it received to
-`documents/printbridge/lastreceived.bin` and records the last profile ref, byte count and
-timestamp so the setup page can show proof a print actually reached *something*.
-If you set `PRINTBRIDGE_DEFAULT_TOKEN`, the bundled receiver enforces it like a real collector
-would; if you leave it blank, it accepts any POST - fine for local testing, not for exposing
-to the internet unset.
+`printbridgereceiver.php` at the module root is a minimal, unauthenticated endpoint that
+PrintBridge points at automatically until you configure a real one. It never prints anything
+- it writes what it received to `documents/printbridge/lastreceived.bin` and records the last
+profile ref, byte count and timestamp so the setup page can show proof a print actually
+reached *something*. Like the rest of PrintBridge, it has no auth check - only expose it
+inside your trusted network, same as any real print collector you point PrintBridge at.
 
 ## Recent prints (test log)
 
