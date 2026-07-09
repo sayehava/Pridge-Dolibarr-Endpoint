@@ -1,0 +1,25 @@
+# Dolibarr language file - Source file is en_US - receiptprinterextended
+# Language file for the Receipt Printers - Extended (PrintBridge) module.
+ReceiptPrinterExtendedDesc=Adds an HTTP "PrintBridge" transport for the built-in Receipt Printers module and TakePOS
+ReceiptPrinterExtendedDescLong=Registers a printbridge:// stream wrapper so a printer configured with connector type "File" in Dolibarr's built-in Receipt Printers module (Setup > Receipt Printers) can forward its ticket over HTTPS to an external print collector, instead of writing to a local file. Configure PrintBridge profiles below, then reference them from that module's printer setup.
+PrintBridgeDefaults=Default settings
+PrintBridgeProfiles=PrintBridge profiles
+DefaultEndpoint=Default endpoint URL
+DefaultToken=Default auth token
+DefaultTimeout=Default timeout (seconds)
+DefaultVerifySSL=Default SSL certificate verification
+ProfileRef=Profile id
+ProfileRefHelp=Short id, used as printbridge://<id>
+Endpoint=Endpoint URL
+Token=Auth token
+Timeout=Timeout (seconds)
+VerifySSL=Verify SSL certificate
+UseDefaultValue=Use default
+ProfileRefEmpty=Profile id cannot be empty
+ProfileRefAlreadyExists=A profile with this id already exists
+ProfileAdded=Profile '%s' added
+ProfileUpdated=Profile updated
+ProfileDeleted=Profile deleted
+ProfileParameterValue=Parameter value for the built-in module
+ProfileParameterInstructions=To use a profile from TakePOS, create or edit a printer in Setup > Receipt Printers with connector type "File" and paste the printbridge://<id> value shown above into its Parameter field.
+SetupSaved=Setup saved
