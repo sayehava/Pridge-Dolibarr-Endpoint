@@ -9,7 +9,7 @@
  * buffered in memory and, on stream_close(), POSTed over HTTPS to the PrintBridge endpoint
  * configured for that profile.
  *
- * This class is instantiated once per request by class/actions_receiptprinterextended.class.php
+ * This class is instantiated once per request by class/actions_printbridge.class.php
  * (a Dolibarr hook), which is what registers the scheme via stream_wrapper_register(). See
  * the README "Technical Design" for the full mechanism and why Dummy connector cannot be used
  * instead.
@@ -128,10 +128,10 @@ class PrintBridgeStreamWrapper
 
         global $db;
 
-        require_once __DIR__.'/receiptprinterextendedprofile.class.php';
+        require_once __DIR__.'/printbridgeprofile.class.php';
         require_once __DIR__.'/printbridgeclient.class.php';
 
-        $profile = new ReceiptPrinterExtendedProfile($db);
+        $profile = new PrintBridgeProfile($db);
         if ($profile->fetchByRef($this->profileRef) > 0) {
             $client = new PrintBridgeClient();
             $client->send($profile, $this->buffer);

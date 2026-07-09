@@ -11,8 +11,8 @@ class PrintBridgeClient
     /**
      * Send raw ESC/POS bytes to the endpoint configured on the given profile.
      *
-     * @param ReceiptPrinterExtendedProfile $profile Profile with endpoint/token/timeout/verifyssl resolved
-     * @param string                        $data    Raw ESC/POS bytes
+     * @param PrintBridgeProfile $profile Profile with endpoint/token/timeout/verifyssl resolved
+     * @param string             $data    Raw ESC/POS bytes
      * @return bool True on HTTP 2xx, false otherwise (see $this->error)
      */
     public function send($profile, $data)

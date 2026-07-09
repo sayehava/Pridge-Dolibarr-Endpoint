@@ -1,12 +1,12 @@
 <?php
 /**
  *      \file       printbridgereceiver.php
- *      \ingroup    receiptprinterextended
+ *      \ingroup    printbridge
  *      \brief      Bundled PrintBridge receiver, used as the zero-config default endpoint.
  *
  * A real deployment should point PrintBridge profiles at an external print collector. Before
  * one exists, PRINTBRIDGE_DEFAULT_ENDPOINT is set to this script automatically on module
- * activation (see modReceiptPrinterExtended::init()), so adopting/testing a printer produces
+ * activation (see modPrintBridge::init()), so adopting/testing a printer produces
  * a genuine, verifiable HTTP round trip instead of an empty Parameter (blank page) or a
  * Parameter pointing nowhere (connection error). This script just records what it received
  * and returns 200 - it never actually prints anything.
@@ -90,7 +90,7 @@ if ($expectedtoken !== '') {
 $data = file_get_contents('php://input');
 $profileref = isset($_SERVER['HTTP_X_PRINTBRIDGE_PROFILE']) ? $_SERVER['HTTP_X_PRINTBRIDGE_PROFILE'] : '';
 
-$outputdir = DOL_DATA_ROOT.'/receiptprinterextended';
+$outputdir = DOL_DATA_ROOT.'/printbridge';
 dol_mkdir($outputdir);
 file_put_contents($outputdir.'/lastreceived.bin', $data);
 
