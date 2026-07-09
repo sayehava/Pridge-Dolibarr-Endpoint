@@ -23,7 +23,10 @@ class PrintBridgeClient
             return false;
         }
 
-        $headers = array('Content-Type: application/octet-stream');
+        $headers = array(
+            'Content-Type: application/octet-stream',
+            'X-PrintBridge-Profile: '.$profile->ref,
+        );
         $token = $profile->getToken();
         if (!empty($token)) {
             $headers[] = 'Authorization: Bearer '.$token;
