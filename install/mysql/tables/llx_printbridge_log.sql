@@ -8,5 +8,6 @@ CREATE TABLE llx_printbridge_log
     success     INTEGER DEFAULT 0 NOT NULL,
     httpcode    INTEGER DEFAULT 0 NOT NULL,
     size        INTEGER DEFAULT 0 NOT NULL,
-    content     MEDIUMTEXT NOT NULL
+    content     MEDIUMTEXT NOT NULL,
+    response    TEXT NOT NULL
 ) ENGINE=innodb;
