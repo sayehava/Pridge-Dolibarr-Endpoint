@@ -378,6 +378,22 @@ print '<td></td>';
 print '</tr>';
 
 $profiles = $profile->fetchAll();
+
+// Printers already wired to printbridge:// (via Adopt or by hand in the built-in module)
+// whose profile row doesn't exist (yet, or anymore - e.g. after a database reset). These are
+// the only valid choices for a new profile's ref: picking one from a dropdown instead of
+// typing it means it can never fail to match what the printer's Parameter actually holds.
+$existingprofilerefs = array_column($profiles, 'ref');
+$orphanedadoptedrefs = array();
+foreach ($builtinprinters as $bp) {
+    if (strpos($bp['parameter'], 'printbridge://') === 0) {
+        $bpref = substr($bp['parameter'], strlen('printbridge://'));
+        if ($bpref !== '' && !in_array($bpref, $existingprofilerefs, true)) {
+            $orphanedadoptedrefs[$bpref] = $bp['name'];
+        }
+    }
+}
+
 foreach ($profiles as $line) {
     print '<tr class="oddeven">';
 
@@ -419,19 +435,29 @@ foreach ($profiles as $line) {
 }
 
 // Add line, hidden while editing an existing profile (the form's hidden action is
-// "updateprofile" in that case, so this row's inputs would never be read anyway)
+// "updateprofile" in that case, so this row's inputs would never be read anyway). The ref
+// picker only ever lists adopted printers with no profile yet - never a free-text field, so
+// it can never be typed in a way that doesn't match what the printer's Parameter holds.
 if (!$editingprofileid) {
-    print '<tr class="oddeven">';
-    print '<td><input class="minwidth100" type="text" name="ref" placeholder="'.dol_escape_htmltag($langs->trans('ProfileRefHelp')).'"></td>';
-    print '<td><select name="profileserverid" class="minwidth150">';
-    print PrintBridgeServer::buildOptions($servers, 0, $langs->trans('UseDefaultValue'));
-    print '</select></td>';
-    print '<td><input class="minwidth150" type="text" name="endpointtoken"></td>';
-    print '<td><input class="minwidth200" type="text" name="endpoint"></td>';
-    print '<td><input class="width50" type="text" name="timeout"></td>';
-    print '<td></td>';
-    print '<td><input type="submit" class="button small" value="'.$langs->trans('Add').'"></td>';
-    print '</tr>';
+    if (empty($orphanedadoptedrefs)) {
+        print '<tr class="oddeven"><td colspan="7">'.$langs->trans('NoAdoptedPrinterWithoutProfile').'</td></tr>';
+    } else {
+        print '<tr class="oddeven">';
+        print '<td><select name="ref" class="minwidth100">';
+        foreach ($orphanedadoptedrefs as $refvalue => $printername) {
+            print '<option value="'.dol_escape_htmltag($refvalue).'">'.dol_escape_htmltag($printername).' ('.dol_escape_htmltag($refvalue).')</option>';
+        }
+        print '</select></td>';
+        print '<td><select name="profileserverid" class="minwidth150">';
+        print PrintBridgeServer::buildOptions($servers, 0, $langs->trans('UseDefaultValue'));
+        print '</select></td>';
+        print '<td><input class="minwidth150" type="text" name="endpointtoken"></td>';
+        print '<td><input class="minwidth200" type="text" name="endpoint"></td>';
+        print '<td><input class="width50" type="text" name="timeout"></td>';
+        print '<td></td>';
+        print '<td><input type="submit" class="button small" value="'.$langs->trans('Add').'"></td>';
+        print '</tr>';
+    }
 }
 
 print '</table>';
