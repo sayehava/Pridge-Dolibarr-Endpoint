@@ -61,29 +61,29 @@ used for this instead.
    is also enabled - this module does not replace it.
 2. On this module's setup page, add a **PrintBridge server**: a name and your PrintBridge
    Server's base URL (e.g. `https://printbridge.example.com`) - the plugin API path
-   (`/api/plugin/jobs`) is added automatically.
-3. Create a **PrintBridge profile**: give it a short id (e.g. `receipt_1`), pick the server
-   from step 2, and paste in that destination's own endpoint token (the bearer token your
-   PrintBridge Server issued for that specific print destination). Timeout can be left blank
-   to use the module-wide default. Anything left blank on a profile falls back to the
-   module-wide defaults set at the top of the page - including a default server/token, so a
-   single-printer setup doesn't need per-profile overrides at all. Until you set a default
-   server, the default endpoint is the module's own **bundled receiver**
-   (`printbridgereceiver.php`) - it doesn't print anything, it just records what it received
-   (shown on the setup page) so you can verify the round trip before a real server exists.
-4. Either:
-   - Go to **Setup > Receipt Printers** (the built-in module) and create or edit a printer
-     with connector type **Local Printer**, using `printbridge://<profile-id>` as its
-     Parameter value - the admin page shows this exact string next to each profile, ready to
-     copy; or
-   - On this module's setup page, use **Adopt an existing printer**: it lists the built-in
-     module's printers that use connector type **Local Printer** (the only type PrintBridge
-     can take over - see "Why this exists") with a one-click Adopt action. Adopting creates a
-     matching profile automatically (ref `printer_<id>`) and rewrites that printer's Parameter
-     to `printbridge://printer_<id>`, **overwriting its previous Parameter value**. An
+   (`/api/plugin/jobs`) is added automatically. Optionally, set it (and a default endpoint
+   token) as the **module-wide default** at the top of the page - if every printer shares one
+   destination, this alone is enough and no per-profile overrides are needed at all.
+3. Either:
+   - Use **Adopt an existing printer**: it lists the built-in module's printers using
+     connector type **Local Printer** (the only type PrintBridge can take over - see "Why
+     this exists") with a one-click Adopt action. Adopting creates a matching profile
+     automatically (ref `printer_<id>`) and rewrites that printer's Parameter to
+     `printbridge://printer_<id>`, **overwriting its previous Parameter value**. An
      **Unadopt** button next to it clears the Parameter back to empty if you change your mind
      - it cannot restore the printer's previous value, since that was never saved, but it lets
-     you reconfigure the printer from scratch. The matching profile is left untouched.
+     you reconfigure the printer from scratch. The matching profile is left untouched; or
+   - Go to **Setup > Receipt Printers** (the built-in module) yourself and create or edit a
+     printer with connector type **Local Printer**, using `printbridge://<profile-id>` as its
+     Parameter value - then come back to this module's Profiles section, where the ref picker
+     lists exactly that printer (any printer already pointed at `printbridge://` that has no
+     profile yet) so you never have to type the ref by hand.
+4. If this printer needs its own server/token instead of the module-wide default, click edit
+   on its profile row and set them there. Timeout can be left blank to use the module-wide
+   default too. Until a server resolves (profile or default), the fallback is this module's
+   own **bundled receiver** (`printbridgereceiver.php`) - it doesn't print anything, it just
+   records what it received (shown on the setup page) so you can verify the round trip before
+   a real server exists.
 5. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
    printed from that terminal are now submitted as jobs to your PrintBridge Server instead of
    being written to a local file.
