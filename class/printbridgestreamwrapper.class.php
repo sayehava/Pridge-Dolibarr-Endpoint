@@ -146,13 +146,21 @@ class PrintBridgeStreamWrapper
         $endpoint = '';
         $success = false;
         $httpcode = 0;
+        $response = '';
 
         if ($profile->fetchByRef($this->profileRef) > 0) {
-            $endpoint = $profile->getEndpoint();
+            $endpoint = $profile->resolveEndpointUrl();
             if ($endpoint !== '') {
                 $client = new PrintBridgeClient();
-                $success = $client->send($profile, $this->buffer);
+                $success = $client->send(
+                    $endpoint,
+                    $profile->resolveToken(),
+                    $profile->getTimeout(),
+                    $this->buffer,
+                    array('source' => 'dolibarr-printbridge', 'profile' => $this->profileRef)
+                );
                 $httpcode = $client->lastHttpCode;
+                $response = $client->lastResponseBody;
             } else {
                 dol_syslog(
                     "PrintBridgeStreamWrapper::stream_close: no endpoint configured for profile '".$this->profileRef."', logging only",
@@ -164,7 +172,7 @@ class PrintBridgeStreamWrapper
         }
 
         $log = new PrintBridgeLog($db);
-        $logresult = $log->record($this->profileRef, $endpoint, $success, $httpcode, $this->buffer);
+        $logresult = $log->record($this->profileRef, $endpoint, $success, $httpcode, $this->buffer, $response);
 
         dol_syslog(
             "PrintBridgeStreamWrapper::stream_close: logged (record() returned ".$logresult.")"
