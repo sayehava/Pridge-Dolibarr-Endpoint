@@ -116,7 +116,9 @@ class PrintBridgeStreamWrapper
 
     /**
      * Called by PHP on fclose(). This is where the buffered ESC/POS ticket is actually
-     * forwarded to the PrintBridge endpoint configured for the parsed profile ref.
+     * forwarded to the PrintBridge endpoint configured for the parsed profile ref - and,
+     * regardless of whether an endpoint exists or the forward succeeds, recorded into the
+     * rolling test log (PrintBridgeLog), so a ticket is never silently lost.
      *
      * @return void
      */
@@ -130,14 +132,31 @@ class PrintBridgeStreamWrapper
 
         require_once __DIR__.'/printbridgeprofile.class.php';
         require_once __DIR__.'/printbridgeclient.class.php';
+        require_once __DIR__.'/printbridgelog.class.php';
 
         $profile = new PrintBridgeProfile($db);
+        $endpoint = '';
+        $success = false;
+        $httpcode = 0;
+
         if ($profile->fetchByRef($this->profileRef) > 0) {
-            $client = new PrintBridgeClient();
-            $client->send($profile, $this->buffer);
+            $endpoint = $profile->getEndpoint();
+            if ($endpoint !== '') {
+                $client = new PrintBridgeClient();
+                $success = $client->send($profile, $this->buffer);
+                $httpcode = $client->lastHttpCode;
+            } else {
+                dol_syslog(
+                    "PrintBridgeStreamWrapper::stream_close: no endpoint configured for profile '".$this->profileRef."', logging only",
+                    LOG_WARNING
+                );
+            }
         } else {
             dol_syslog("PrintBridgeStreamWrapper::stream_close: unknown profile ref '".$this->profileRef."'", LOG_WARNING);
         }
+
+        $log = new PrintBridgeLog($db);
+        $log->record($this->profileRef, $endpoint, $success, $httpcode, $this->buffer);
 
         $this->buffer = '';
     }
