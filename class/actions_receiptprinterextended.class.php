@@ -1,0 +1,49 @@
+<?php
+/**
+ * Hook actions for module Receipt Printers - Extended.
+ *
+ * Loaded by Dolibarr's HookManager on every request, because the module descriptor claims
+ * the 'all' hook context. Its only job is to register the printbridge:// stream wrapper in
+ * the constructor, early enough (before any print action runs) for
+ * Mike42\Escpos\PrintConnectors\FilePrintConnector's fopen() call to be intercepted. See
+ * the README "Technical Design" for why this is necessary and why it works.
+ */
+
+require_once __DIR__.'/printbridgestreamwrapper.class.php';
+
+/**
+ * Actions class for module Receipt Printers - Extended.
+ */
+class ActionsReceiptprinterextended
+{
+    /**
+     * @var DoliDB Database handler
+     */
+    public $db;
+
+    /**
+     * @var string Last error message
+     */
+    public $error = '';
+
+    /**
+     * @var string[] Last error messages
+     */
+    public $errors = array();
+
+    /**
+     * Constructor. Registers the printbridge:// stream wrapper, guarded so repeated
+     * instantiation within the same request (or across multiple initHooks() contexts) never
+     * tries to register it twice.
+     *
+     * @param DoliDB $db Database handler
+     */
+    public function __construct($db)
+    {
+        $this->db = $db;
+
+        if (!in_array(PrintBridgeStreamWrapper::PROTOCOL, stream_get_wrappers(), true)) {
+            stream_wrapper_register(PrintBridgeStreamWrapper::PROTOCOL, 'PrintBridgeStreamWrapper');
+        }
+    }
+}
