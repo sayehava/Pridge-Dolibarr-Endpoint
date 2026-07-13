@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * PHP stream wrapper that intercepts the printbridge:// scheme.
  *

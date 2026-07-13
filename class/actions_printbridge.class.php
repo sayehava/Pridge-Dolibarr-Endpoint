@@ -1,6 +1,7 @@
 <?php
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Hook actions for module Print Bridge.
+ * Hook actions for module PrintBridge Dolibarr Endpoint.
  *
  * Loaded by Dolibarr's HookManager on every request, because the module descriptor claims
  * the 'all' hook context. Its only job is to register the printbridge:// stream wrapper in
@@ -17,7 +18,7 @@
 require_once __DIR__.'/printbridgestreamwrapper.class.php';
 
 /**
- * Actions class for module Print Bridge.
+ * Actions class for module PrintBridge Dolibarr Endpoint.
  */
 class ActionsPrintbridge
 {

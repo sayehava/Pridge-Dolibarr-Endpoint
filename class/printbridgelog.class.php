@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * Rolling log of the last N PrintBridge tickets (table llx_printbridge_log), kept purely for
  * testing: lets an admin preview what was actually printed and whether/where it was forwarded,

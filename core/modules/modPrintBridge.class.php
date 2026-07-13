@@ -1,6 +1,7 @@
 <?php
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /*
- * Module descriptor for Print Bridge.
+ * Module descriptor for PrintBridge Dolibarr Endpoint.
  *
  * This module does not clone or conflict with Dolibarr's built-in Receipt Printers module.
  * It only adds an HTTP transport ("PrintBridge") that the built-in module's existing "Local
@@ -11,7 +12,7 @@
 include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
 
 /**
- * Description and activation file for module Print Bridge.
+ * Description and activation file for module PrintBridge Dolibarr Endpoint.
  */
 class modPrintBridge extends DolibarrModules
 {
@@ -32,6 +33,7 @@ class modPrintBridge extends DolibarrModules
         $this->editor_name = 'Sayeh Ava Pazouki';
         $this->editor_url = '';
         $this->version = '0.1.0';
+        $this->license = 'AGPL-3.0-or-later';
         $this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
         $this->picto = 'printer';
 

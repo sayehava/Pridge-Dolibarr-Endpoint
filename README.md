@@ -1,4 +1,4 @@
-# Print Bridge
+# PrintBridge Dolibarr Endpoint
 
 A companion Dolibarr module that adds an HTTP-based printer driver, **PrintBridge**, usable
 from Dolibarr's built-in **Receipt Printers** module and from **TakePOS**, without patching
@@ -56,7 +56,8 @@ used for this instead.
 
 ## Setup
 
-1. Copy this module's folder into `htdocs/custom/printbridge`, then enable **Print Bridge** in
+1. Copy this module's folder into `htdocs/custom/printbridge`, then enable **PrintBridge
+   Dolibarr Endpoint** in
    **Home > Setup > Modules/Applications**. Make sure the built-in **Receipt Printers** module
    is also enabled - this module does not replace it.
 2. On this module's setup page, add a **PrintBridge server**: a name and your PrintBridge
@@ -151,3 +152,8 @@ Core mechanism (module descriptor, hook, stream wrapper, HTTP client, servers, p
 admin page, bundled test receiver, recent-prints log) is in place and has been tested against
 a live Dolibarr instance (module activation, adopt/unadopt, TakePOS test print). The
 server/token rework in this session has not been retested live yet.
+
+## License
+
+Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See
+[`LICENSE`](LICENSE) for the full text.

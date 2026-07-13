@@ -1,4 +1,5 @@
 <?php
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  * CRUD for PrintBridge servers (table llx_printbridge_server).
  *

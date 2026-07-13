@@ -1,7 +1,7 @@
 # Dolibarr language file - Source file is en_US - printbridge
-# Language file for the Print Bridge module.
+# Language file for the PrintBridge Dolibarr Endpoint module.
 PrintBridgeDesc=Send receipt tickets to an external print collector over HTTPS
-PrintBridgeDescLong=Print Bridge adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket as a job to a PrintBridge Server, instead of writing to a local file. Add your server(s) below, then create a profile picking which server and endpoint token to use, and reference it from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
+PrintBridgeDescLong=PrintBridge Dolibarr Endpoint adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a printbridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket as a job to a PrintBridge Server, instead of writing to a local file. Add your server(s) below, then create a profile picking which server and endpoint token to use, and reference it from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
 PrintBridgeDefaults=Default settings
 PrintBridgeDefaultsHelp=Used whenever a profile leaves the matching field blank. A default server (with a default endpoint token) is the normal setup; the fallback endpoint URL only matters when no server resolves at all (profile or default) - e.g. for the bundled test receiver.
 PrintBridgeServers=PrintBridge servers

@@ -1,8 +1,9 @@
 <?php
+// SPDX-License-Identifier: AGPL-3.0-or-later
 /**
  *      \file       admin/printbridge.php
  *      \ingroup    printbridge
- *      \brief      Setup page for the Print Bridge module.
+ *      \brief      Setup page for the PrintBridge Dolibarr Endpoint module.
  *
  * Manages PrintBridge servers, profiles and module-wide defaults only. This page does not
  * manage printers or ticket templates - those stay owned by Dolibarr's built-in Receipt
