@@ -1,13 +1,13 @@
 <?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * CRUD for PrintBridge servers (table llx_printbridge_server).
+ * CRUD for Pridge servers (table llx_pridge_server).
  *
  * A server is just a base URL for a real PrintBridge Server instance (see the README /
  * README.md for its plugin API). Profiles pick a server plus their own endpoint token; the
  * submission URL is always <base_url>/api/plugin/jobs.
  */
-class PrintBridgeServer
+class PridgeServer
 {
     /**
      * @var DoliDB Database handler
@@ -25,7 +25,7 @@ class PrintBridgeServer
     public $name = '';
 
     /**
-     * @var string Base URL, e.g. https://printbridge.example.com
+     * @var string Base URL, e.g. https://pridge.example.com
      */
     public $baseUrl = '';
 
@@ -53,9 +53,9 @@ class PrintBridgeServer
     public function fetch($id)
     {
         $sql = "SELECT rowid, name, base_url";
-        $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_server";
+        $sql .= " FROM ".MAIN_DB_PREFIX."pridge_server";
         $sql .= " WHERE rowid = ".((int) $id);
-        $sql .= " AND entity IN (".getEntity('printbridge_server').")";
+        $sql .= " AND entity IN (".getEntity('pridge_server').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {
@@ -85,8 +85,8 @@ class PrintBridgeServer
         $list = array();
 
         $sql = "SELECT rowid, name, base_url";
-        $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_server";
-        $sql .= " WHERE entity IN (".getEntity('printbridge_server').")";
+        $sql .= " FROM ".MAIN_DB_PREFIX."pridge_server";
+        $sql .= " WHERE entity IN (".getEntity('pridge_server').")";
         $sql .= " ORDER BY name ASC";
 
         $resql = $this->db->query($sql);
@@ -107,7 +107,7 @@ class PrintBridgeServer
      * Create a server.
      *
      * @param string $name    Display name
-     * @param string $baseurl Base URL, e.g. https://printbridge.example.com
+     * @param string $baseurl Base URL, e.g. https://pridge.example.com
      * @return int >0 if OK, <=0 if KO
      */
     public function create($name, $baseurl)
@@ -124,7 +124,7 @@ class PrintBridgeServer
             return -1;
         }
 
-        $sql = "INSERT INTO ".MAIN_DB_PREFIX."printbridge_server";
+        $sql = "INSERT INTO ".MAIN_DB_PREFIX."pridge_server";
         $sql .= " (entity, name, base_url, datec)";
         $sql .= " VALUES (";
         $sql .= ((int) $conf->entity).",";
@@ -139,7 +139,7 @@ class PrintBridgeServer
             return -1;
         }
 
-        $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX.'printbridge_server');
+        $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX.'pridge_server');
 
         return 1;
     }
@@ -154,11 +154,11 @@ class PrintBridgeServer
      */
     public function update($id, $name, $baseurl)
     {
-        $sql = "UPDATE ".MAIN_DB_PREFIX."printbridge_server SET";
+        $sql = "UPDATE ".MAIN_DB_PREFIX."pridge_server SET";
         $sql .= " name = '".$this->db->escape($name)."',";
         $sql .= " base_url = '".$this->db->escape(rtrim($baseurl, '/'))."'";
         $sql .= " WHERE rowid = ".((int) $id);
-        $sql .= " AND entity IN (".getEntity('printbridge_server').")";
+        $sql .= " AND entity IN (".getEntity('pridge_server').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {
@@ -177,9 +177,9 @@ class PrintBridgeServer
      */
     public function delete($id)
     {
-        $sql = "DELETE FROM ".MAIN_DB_PREFIX."printbridge_server";
+        $sql = "DELETE FROM ".MAIN_DB_PREFIX."pridge_server";
         $sql .= " WHERE rowid = ".((int) $id);
-        $sql .= " AND entity IN (".getEntity('printbridge_server').")";
+        $sql .= " AND entity IN (".getEntity('pridge_server').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {

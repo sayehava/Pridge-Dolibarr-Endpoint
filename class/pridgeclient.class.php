@@ -15,7 +15,7 @@
  * image file) - see the README "Data format". Per the API's own guidance, the token is only
  * ever sent as a header, never in the URL.
  */
-class PrintBridgeClient
+class PridgeClient
 {
     /**
      * @var int HTTP status code from the last send() call, 0 if none was attempted
@@ -43,7 +43,7 @@ class PrintBridgeClient
         $this->lastResponseBody = '';
 
         if (empty($url)) {
-            dol_syslog("PrintBridgeClient::send: no URL to submit to", LOG_ERR);
+            dol_syslog("PridgeClient::send: no URL to submit to", LOG_ERR);
             return false;
         }
 
@@ -74,7 +74,7 @@ class PrintBridgeClient
 
         if ($result === false || $httpcode < 200 || $httpcode >= 300) {
             dol_syslog(
-                "PrintBridgeClient::send: failed url=".$url." http_code=".$httpcode." error=".$curlerror." response=".$this->lastResponseBody,
+                "PridgeClient::send: failed url=".$url." http_code=".$httpcode." error=".$curlerror." response=".$this->lastResponseBody,
                 LOG_ERR
             );
             return false;

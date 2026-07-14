@@ -1,10 +1,10 @@
 <?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /*
- * Module descriptor for PrintBridge Dolibarr Endpoint.
+ * Module descriptor for Pridge Dolibarr Endpoint.
  *
  * This module does not clone or conflict with Dolibarr's built-in Receipt Printers module.
- * It only adds an HTTP transport ("PrintBridge") that the built-in module's existing "Local
+ * It only adds an HTTP transport ("Pridge") that the built-in module's existing "Local
  * Printer" connector type can be pointed at, via a PHP stream wrapper registered through
  * Dolibarr's official hook system. See the README for the full design.
  */
@@ -12,9 +12,9 @@
 include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
 
 /**
- * Description and activation file for module PrintBridge Dolibarr Endpoint.
+ * Description and activation file for module Pridge Dolibarr Endpoint.
  */
-class modPrintBridge extends DolibarrModules
+class modPridge extends DolibarrModules
 {
     /**
      * Constructor.
@@ -28,8 +28,8 @@ class modPrintBridge extends DolibarrModules
         $this->family = 'interface';
         $this->module_position = '53';
         $this->name = preg_replace('/^mod/i', '', get_class($this));
-        $this->description = 'PrintBridgeDesc';
-        $this->descriptionlong = 'PrintBridgeDescLong';
+        $this->description = 'PridgeDesc';
+        $this->descriptionlong = 'PridgeDescLong';
         $this->editor_name = 'Sayeh Ava Pazouki';
         $this->editor_url = '';
         $this->version = '0.1.0';
@@ -37,25 +37,25 @@ class modPrintBridge extends DolibarrModules
         $this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
         $this->picto = 'printer';
 
-        // Where the bundled PrintBridge receiver (printbridgereceiver.php) records the last
+        // Where the bundled Pridge receiver (pridgereceiver.php) records the last
         // ticket it got, so the admin page can show proof the round trip actually worked.
-        $this->dirs = array('/printbridge');
+        $this->dirs = array('/pridge');
 
-        $this->config_page_url = array('printbridge.php@printbridge');
+        $this->config_page_url = array('pridge.php@pridge');
 
         $this->hidden = false;
         $this->depends = array();
         $this->requiredby = array();
         // This module intentionally never conflicts with, and never disables, Dolibarr's
         // built-in Receipt Printers module. That module must stay enabled: it owns the
-        // printer list and the TakePOS integration that PrintBridge plugs into.
+        // printer list and the TakePOS integration that Pridge plugs into.
         $this->conflictwith = array();
         $this->phpmin = array(7, 4);
         $this->need_dolibarr_version = array(16, 0);
-        $this->langfiles = array('printbridge@printbridge');
+        $this->langfiles = array('pridge@pridge');
 
-        // Claim the 'all' hook context so class/actions_printbridge.class.php is
-        // instantiated on every request, early enough to register the printbridge:// stream
+        // Claim the 'all' hook context so class/actions_pridge.class.php is
+        // instantiated on every request, early enough to register the pridge:// stream
         // wrapper before any page can attempt to print a receipt. See the README.
         $this->module_parts = array(
             'hooks' => array('all'),
@@ -65,10 +65,10 @@ class modPrintBridge extends DolibarrModules
 
         $r = 0;
         $r++;
-        $this->const[$r][0] = 'PRINTBRIDGE_DEFAULT_TIMEOUT';
+        $this->const[$r][0] = 'PRIDGE_DEFAULT_TIMEOUT';
         $this->const[$r][1] = 'chaine';
         $this->const[$r][2] = '5';
-        $this->const[$r][3] = 'Default PrintBridge request timeout in seconds, used when a profile leaves it blank';
+        $this->const[$r][3] = 'Default Pridge request timeout in seconds, used when a profile leaves it blank';
         $this->const[$r][4] = 0;
 
         $this->boxes = array();
@@ -90,21 +90,21 @@ class modPrintBridge extends DolibarrModules
     {
         global $conf;
 
-        $result = $this->_load_tables('/printbridge/install/mysql/');
+        $result = $this->_load_tables('/pridge/install/mysql/');
         if ($result < 0) {
             return -1;
         }
 
-        // Give PRINTBRIDGE_DEFAULT_ENDPOINT a working value out of the box: the bundled
-        // receiver bundled with this module (printbridgereceiver.php), so adopting/testing a
+        // Give PRIDGE_DEFAULT_ENDPOINT a working value out of the box: the bundled
+        // receiver bundled with this module (pridgereceiver.php), so adopting/testing a
         // printer produces a real HTTP round trip immediately instead of a blank page (empty
         // Parameter) or a connection error (endpoint that doesn't exist yet). Only set if
         // still empty, so reactivating the module never clobbers an admin's real endpoint.
-        if (getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT') === '') {
+        if (getDolGlobalString('PRIDGE_DEFAULT_ENDPOINT') === '') {
             dolibarr_set_const(
                 $this->db,
-                'PRINTBRIDGE_DEFAULT_ENDPOINT',
-                dol_buildpath('/printbridge/printbridgereceiver.php', 2),
+                'PRIDGE_DEFAULT_ENDPOINT',
+                dol_buildpath('/pridge/pridgereceiver.php', 2),
                 'chaine',
                 0,
                 '',

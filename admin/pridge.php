@@ -1,11 +1,11 @@
 <?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- *      \file       admin/printbridge.php
- *      \ingroup    printbridge
- *      \brief      Setup page for the PrintBridge Dolibarr Endpoint module.
+ *      \file       admin/pridge.php
+ *      \ingroup    pridge
+ *      \brief      Setup page for the Pridge Dolibarr Endpoint module.
  *
- * Manages PrintBridge servers, profiles and module-wide defaults only. This page does not
+ * Manages Pridge servers, profiles and module-wide defaults only. This page does not
  * manage printers or ticket templates - those stay owned by Dolibarr's built-in Receipt
  * Printers module (Setup > Receipt Printers). See README.md for the setup steps.
  */
@@ -33,16 +33,16 @@ if (!$res) {
  */
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
-require_once __DIR__.'/../class/printbridgeprofile.class.php';
-require_once __DIR__.'/../class/printbridgebuiltinprinter.class.php';
-require_once __DIR__.'/../class/printbridgelog.class.php';
-require_once __DIR__.'/../class/printbridgeserver.class.php';
+require_once __DIR__.'/../class/pridgeprofile.class.php';
+require_once __DIR__.'/../class/pridgebuiltinprinter.class.php';
+require_once __DIR__.'/../class/pridgelog.class.php';
+require_once __DIR__.'/../class/pridgeserver.class.php';
 
-// Load translation files required by the page. The @printbridge suffix is required for
+// Load translation files required by the page. The @pridge suffix is required for
 // custom-module lang files - without it Dolibarr looks in core's own langs/ directory,
 // silently fails to find it, and every key below falls back to its raw (unspaced PascalCase)
 // name.
-$langs->loadLangs(array('admin', 'printbridge@printbridge'));
+$langs->loadLangs(array('admin', 'pridge@pridge'));
 
 if (!$user->admin) {
     accessforbidden();
@@ -62,10 +62,10 @@ $serverid = GETPOSTINT('serverid');
 $servername = GETPOST('servername', 'alphanohtml');
 $serverbaseurl = GETPOST('serverbaseurl', 'alphanohtml');
 
-$profile = new PrintBridgeProfile($db);
-$builtinprinter = new PrintBridgeBuiltinPrinter($db);
-$printbridgelog = new PrintBridgeLog($db);
-$server = new PrintBridgeServer($db);
+$profile = new PridgeProfile($db);
+$builtinprinter = new PridgeBuiltinPrinter($db);
+$pridgelog = new PridgeLog($db);
+$server = new PridgeServer($db);
 
 
 /*
@@ -73,10 +73,10 @@ $server = new PrintBridgeServer($db);
  */
 
 if ($action == 'setconst') {
-    dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_ENDPOINT', GETPOST('defaultendpoint', 'alphanohtml'), 'chaine', 0, '', $conf->entity);
-    dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_TIMEOUT', GETPOSTINT('defaulttimeout'), 'chaine', 0, '', $conf->entity);
-    dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_SERVER_ID', GETPOSTINT('defaultserverid'), 'chaine', 0, '', $conf->entity);
-    dolibarr_set_const($db, 'PRINTBRIDGE_DEFAULT_TOKEN', GETPOST('defaulttoken', 'alphanohtml'), 'chaine', 0, '', $conf->entity);
+    dolibarr_set_const($db, 'PRIDGE_DEFAULT_ENDPOINT', GETPOST('defaultendpoint', 'alphanohtml'), 'chaine', 0, '', $conf->entity);
+    dolibarr_set_const($db, 'PRIDGE_DEFAULT_TIMEOUT', GETPOSTINT('defaulttimeout'), 'chaine', 0, '', $conf->entity);
+    dolibarr_set_const($db, 'PRIDGE_DEFAULT_SERVER_ID', GETPOSTINT('defaultserverid'), 'chaine', 0, '', $conf->entity);
+    dolibarr_set_const($db, 'PRIDGE_DEFAULT_TOKEN', GETPOST('defaulttoken', 'alphanohtml'), 'chaine', 0, '', $conf->entity);
 
     setEventMessages($langs->trans('SetupSaved'), null);
     $action = '';
@@ -197,22 +197,22 @@ if ($action == 'unadopt') {
  * View
  */
 
-$title = $langs->trans('PrintBridgeDesc');
+$title = $langs->trans('PridgeDesc');
 llxHeader('', $title);
 
 $linkback = '<a href="'.DOL_URL_ROOT.'/admin/modules.php?restore_lastsearch_values=1">'.$langs->trans("BackToModuleList").'</a>';
 print load_fiche_titre($title, $linkback, 'title_setup');
 
-print $langs->trans('PrintBridgeDescLong').'<br><br>';
+print $langs->trans('PridgeDescLong').'<br><br>';
 
 $servers = $server->fetchAll();
 
 
 // Module-wide defaults
 
-print load_fiche_titre($langs->trans('PrintBridgeDefaults'), '', '');
+print load_fiche_titre($langs->trans('PridgeDefaults'), '', '');
 
-print '<span class="opacitymedium">'.$langs->trans('PrintBridgeDefaultsHelp').'</span><br><br>';
+print '<span class="opacitymedium">'.$langs->trans('PridgeDefaultsHelp').'</span><br><br>';
 
 print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
 print '<input type="hidden" name="token" value="'.newToken().'">';
@@ -230,23 +230,23 @@ print '</tr>';
 
 print '<tr class="oddeven">';
 print '<td><select name="defaultserverid" class="minwidth150">';
-print PrintBridgeServer::buildOptions($servers, getDolGlobalInt('PRINTBRIDGE_DEFAULT_SERVER_ID'), $langs->trans('NoServerUseRawEndpoint'));
+print PridgeServer::buildOptions($servers, getDolGlobalInt('PRIDGE_DEFAULT_SERVER_ID'), $langs->trans('NoServerUseRawEndpoint'));
 print '</select></td>';
-print '<td><input class="minwidth150" type="text" name="defaulttoken" value="'.dol_escape_htmltag(getDolGlobalString('PRINTBRIDGE_DEFAULT_TOKEN')).'"></td>';
-print '<td><input class="minwidth200" type="text" name="defaultendpoint" value="'.dol_escape_htmltag(getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT')).'"></td>';
-print '<td><input class="width50" type="text" name="defaulttimeout" value="'.dol_escape_htmltag((string) getDolGlobalInt('PRINTBRIDGE_DEFAULT_TIMEOUT', 5)).'"></td>';
+print '<td><input class="minwidth150" type="text" name="defaulttoken" value="'.dol_escape_htmltag(getDolGlobalString('PRIDGE_DEFAULT_TOKEN')).'"></td>';
+print '<td><input class="minwidth200" type="text" name="defaultendpoint" value="'.dol_escape_htmltag(getDolGlobalString('PRIDGE_DEFAULT_ENDPOINT')).'"></td>';
+print '<td><input class="width50" type="text" name="defaulttimeout" value="'.dol_escape_htmltag((string) getDolGlobalInt('PRIDGE_DEFAULT_TIMEOUT', 5)).'"></td>';
 print '<td><input type="submit" class="button small" value="'.$langs->trans('Save').'"></td>';
 print '</tr>';
 
 print '</table>';
 print '</form>';
 
-$bundledendpoint = dol_buildpath('/printbridge/printbridgereceiver.php', 2);
-if (getDolGlobalInt('PRINTBRIDGE_DEFAULT_SERVER_ID') <= 0 && getDolGlobalString('PRINTBRIDGE_DEFAULT_ENDPOINT') === $bundledendpoint) {
+$bundledendpoint = dol_buildpath('/pridge/pridgereceiver.php', 2);
+if (getDolGlobalInt('PRIDGE_DEFAULT_SERVER_ID') <= 0 && getDolGlobalString('PRIDGE_DEFAULT_ENDPOINT') === $bundledendpoint) {
     print '<br>'.info_admin($langs->trans('UsingBundledReceiver'));
 }
 
-$lastreceived = getDolGlobalString('PRINTBRIDGE_LASTRECEIVED');
+$lastreceived = getDolGlobalString('PRIDGE_LASTRECEIVED');
 if ($lastreceived !== '') {
     list($lastref, $lastsize, $lastdate) = array_pad(explode('|', $lastreceived), 3, '');
     print '<br><span class="opacitymedium">'.$langs->trans('LastReceivedTicket', dol_escape_htmltag($lastref), (int) $lastsize, dol_print_date((int) $lastdate, 'dayhour')).'</span>';
@@ -257,9 +257,9 @@ print '<br>';
 
 // Servers
 
-print load_fiche_titre($langs->trans('PrintBridgeServers'), '', '');
+print load_fiche_titre($langs->trans('PridgeServers'), '', '');
 
-print '<span class="opacitymedium">'.$langs->trans('PrintBridgeServersHelp').'</span><br><br>';
+print '<span class="opacitymedium">'.$langs->trans('PridgeServersHelp').'</span><br><br>';
 
 $editingserverid = ($action == 'editserver') ? $serverid : 0;
 
@@ -300,7 +300,7 @@ foreach ($servers as $line) {
 if (!$editingserverid) {
     print '<tr class="oddeven">';
     print '<td><input class="minwidth150" type="text" name="servername" placeholder="'.dol_escape_htmltag($langs->trans('ServerName')).'"></td>';
-    print '<td><input class="minwidth200" type="text" name="serverbaseurl" placeholder="https://printbridge.example.com"></td>';
+    print '<td><input class="minwidth200" type="text" name="serverbaseurl" placeholder="https://pridge.example.com"></td>';
     print '<td><input type="submit" class="button small" value="'.$langs->trans('Add').'"></td>';
     print '</tr>';
 }
@@ -330,7 +330,7 @@ if (empty($builtinprinters)) {
 }
 
 foreach ($builtinprinters as $line) {
-    $isadopted = (strpos($line['parameter'], 'printbridge://') === 0);
+    $isadopted = (strpos($line['parameter'], 'pridge://') === 0);
 
     print '<tr class="oddeven">';
     print '<td>'.dol_escape_htmltag($line['name']).'</td>';
@@ -353,9 +353,9 @@ print '<br>';
 
 // Profiles
 
-print load_fiche_titre($langs->trans('PrintBridgeProfiles'), '', '');
+print load_fiche_titre($langs->trans('PridgeProfiles'), '', '');
 
-print '<span class="opacitymedium">'.$langs->trans('PrintBridgeProfilesHelp').'</span><br><br>';
+print '<span class="opacitymedium">'.$langs->trans('PridgeProfilesHelp').'</span><br><br>';
 
 $editingprofileid = ($action == 'editprofile') ? $profileid : 0;
 
@@ -380,15 +380,15 @@ print '</tr>';
 
 $profiles = $profile->fetchAll();
 
-// Printers already wired to printbridge:// (via Adopt or by hand in the built-in module)
+// Printers already wired to pridge:// (via Adopt or by hand in the built-in module)
 // whose profile row doesn't exist (yet, or anymore - e.g. after a database reset). These are
 // the only valid choices for a new profile's ref: picking one from a dropdown instead of
 // typing it means it can never fail to match what the printer's Parameter actually holds.
 $existingprofilerefs = array_column($profiles, 'ref');
 $orphanedadoptedrefs = array();
 foreach ($builtinprinters as $bp) {
-    if (strpos($bp['parameter'], 'printbridge://') === 0) {
-        $bpref = substr($bp['parameter'], strlen('printbridge://'));
+    if (strpos($bp['parameter'], 'pridge://') === 0) {
+        $bpref = substr($bp['parameter'], strlen('pridge://'));
         if ($bpref !== '' && !in_array($bpref, $existingprofilerefs, true)) {
             $orphanedadoptedrefs[$bpref] = $bp['name'];
         }
@@ -401,12 +401,12 @@ foreach ($profiles as $line) {
     if ($editingprofileid && $line['rowid'] == $editingprofileid) {
         print '<td>'.dol_escape_htmltag($line['ref']).'</td>';
         print '<td><select name="profileserverid" class="minwidth150">';
-        print PrintBridgeServer::buildOptions($servers, $line['server_id'], $langs->trans('UseDefaultValue'));
+        print PridgeServer::buildOptions($servers, $line['server_id'], $langs->trans('UseDefaultValue'));
         print '</select></td>';
         print '<td><input class="minwidth150" type="text" name="endpointtoken" value="'.dol_escape_htmltag($line['endpoint_token']).'"></td>';
         print '<td><input class="minwidth200" type="text" name="endpoint" value="'.dol_escape_htmltag($line['endpoint']).'"></td>';
         print '<td><input class="width50" type="text" name="timeout" value="'.((int) $line['timeout']).'"></td>';
-        print '<td><code>printbridge://'.dol_escape_htmltag($line['ref']).'</code></td>';
+        print '<td><code>pridge://'.dol_escape_htmltag($line['ref']).'</code></td>';
         print '<td><input type="submit" class="button small" value="'.$langs->trans('Save').'"></td>';
     } else {
         // A profile's stored server_id of 0 means "not set here, inherit the module default"
@@ -425,7 +425,7 @@ foreach ($profiles as $line) {
         print '<td>'.($line['endpoint_token'] !== '' ? '••••••••' : '').'</td>';
         print '<td>'.dol_escape_htmltag($line['endpoint']).'</td>';
         print '<td>'.($line['timeout'] > 0 ? (int) $line['timeout'] : $langs->trans('UseDefaultValue')).'</td>';
-        print '<td><code>printbridge://'.dol_escape_htmltag($line['ref']).'</code></td>';
+        print '<td><code>pridge://'.dol_escape_htmltag($line['ref']).'</code></td>';
         print '<td class="nowraponall">';
         print '<a class="editfielda marginrightonly" href="'.$_SERVER['PHP_SELF'].'?action=editprofile&token='.newToken().'&profileid='.((int) $line['rowid']).'">'.img_edit().'</a>';
         print '<a class="marginrightonly" href="'.$_SERVER['PHP_SELF'].'?action=delete&token='.newToken().'&profileid='.((int) $line['rowid']).'">'.img_delete().'</a>';
@@ -450,7 +450,7 @@ if (!$editingprofileid) {
         }
         print '</select></td>';
         print '<td><select name="profileserverid" class="minwidth150">';
-        print PrintBridgeServer::buildOptions($servers, 0, $langs->trans('UseDefaultValue'));
+        print PridgeServer::buildOptions($servers, 0, $langs->trans('UseDefaultValue'));
         print '</select></td>';
         print '<td><input class="minwidth150" type="text" name="endpointtoken"></td>';
         print '<td><input class="minwidth200" type="text" name="endpoint"></td>';
@@ -474,7 +474,7 @@ print '<br><br>';
 
 print load_fiche_titre($langs->trans('RecentPrints'), '', '');
 
-print '<span class="opacitymedium">'.$langs->trans('RecentPrintsHelp', PrintBridgeLog::MAX_ENTRIES).'</span><br><br>';
+print '<span class="opacitymedium">'.$langs->trans('RecentPrintsHelp', PridgeLog::MAX_ENTRIES).'</span><br><br>';
 
 print '<table class="noborder centpercent">';
 print '<tr class="liste_titre">';
@@ -486,7 +486,7 @@ print '<td>'.$langs->trans('Size').'</td>';
 print '<td></td>';
 print '</tr>';
 
-$logentries = $printbridgelog->fetchLast();
+$logentries = $pridgelog->fetchLast();
 if (empty($logentries)) {
     print '<tr class="oddeven"><td colspan="6">'.$langs->trans('NoLogEntries').'</td></tr>';
 }
@@ -500,8 +500,8 @@ foreach ($logentries as $logline) {
         $result = $langs->trans('LogResultFailed', $logline['httpcode']);
     }
 
-    $previewtext = PrintBridgeLog::naiveTextPreview((string) $printbridgelog->fetchContent($logline['rowid']));
-    $responsetext = (string) $printbridgelog->fetchResponse($logline['rowid']);
+    $previewtext = PridgeLog::naiveTextPreview((string) $pridgelog->fetchContent($logline['rowid']));
+    $responsetext = (string) $pridgelog->fetchResponse($logline['rowid']);
 
     print '<tr class="oddeven">';
     print '<td>'.dol_print_date($logline['datec'], 'dayhour').'</td>';
@@ -509,26 +509,26 @@ foreach ($logentries as $logline) {
     print '<td>'.dol_escape_htmltag($logline['endpoint']).'</td>';
     print '<td>'.$result.'</td>';
     print '<td>'.((int) $logline['size']).'</td>';
-    print '<td><button type="button" class="button smallpaddingimp" data-preview="'.dol_escape_htmltag($previewtext).'" data-response="'.dol_escape_htmltag($responsetext).'" onclick="printbridgeShowPreview(this)">'.$langs->trans('Preview').'</button></td>';
+    print '<td><button type="button" class="button smallpaddingimp" data-preview="'.dol_escape_htmltag($previewtext).'" data-response="'.dol_escape_htmltag($responsetext).'" onclick="pridgeShowPreview(this)">'.$langs->trans('Preview').'</button></td>';
     print '</tr>';
 }
 
 print '</table>';
 
-print '<dialog id="printbridgepreviewdialog" style="max-width:600px;width:90%;">';
+print '<dialog id="pridgepreviewdialog" style="max-width:600px;width:90%;">';
 print '<form method="dialog">';
 print '<p><strong>'.$langs->trans('TicketPreview').'</strong></p>';
-print '<pre id="printbridgepreviewbody" style="white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto;"></pre>';
+print '<pre id="pridgepreviewbody" style="white-space:pre-wrap;word-break:break-word;max-height:30vh;overflow:auto;"></pre>';
 print '<p><strong>'.$langs->trans('ServerResponse').'</strong></p>';
-print '<pre id="printbridgepreviewresponse" style="white-space:pre-wrap;word-break:break-word;max-height:20vh;overflow:auto;"></pre>';
+print '<pre id="pridgepreviewresponse" style="white-space:pre-wrap;word-break:break-word;max-height:20vh;overflow:auto;"></pre>';
 print '<button type="submit" class="button">'.$langs->trans('Close').'</button>';
 print '</form>';
 print '</dialog>';
 print '<script>
-function printbridgeShowPreview(btn) {
-    document.getElementById("printbridgepreviewbody").textContent = btn.getAttribute("data-preview");
-    document.getElementById("printbridgepreviewresponse").textContent = btn.getAttribute("data-response") || "-";
-    document.getElementById("printbridgepreviewdialog").showModal();
+function pridgeShowPreview(btn) {
+    document.getElementById("pridgepreviewbody").textContent = btn.getAttribute("data-preview");
+    document.getElementById("pridgepreviewresponse").textContent = btn.getAttribute("data-response") || "-";
+    document.getElementById("pridgepreviewdialog").showModal();
 }
 </script>';
 

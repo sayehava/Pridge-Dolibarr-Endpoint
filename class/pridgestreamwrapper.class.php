@@ -1,26 +1,26 @@
 <?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * PHP stream wrapper that intercepts the printbridge:// scheme.
+ * PHP stream wrapper that intercepts the pridge:// scheme.
  *
  * Dolibarr's built-in Receipt Printers module (and TakePOS) send tickets through
  * Mike42\Escpos\PrintConnectors\FilePrintConnector, whose entire implementation is a plain
  * fopen()/fwrite()/fclose() sequence on the printer's "Parameter" value. Pointing that value
- * at printbridge://<profile-ref> routes those calls here instead of the filesystem: bytes are
- * buffered in memory and, on stream_close(), POSTed over HTTPS to the PrintBridge endpoint
- * configured for that profile.
+ * at pridge://<profile-ref> routes those calls here instead of the filesystem: bytes are
+ * buffered in memory and, on stream_close(), POSTed over HTTPS to the endpoint configured
+ * for that profile.
  *
- * This class is instantiated once per request by class/actions_printbridge.class.php
+ * This class is instantiated once per request by class/actions_pridge.class.php
  * (a Dolibarr hook), which is what registers the scheme via stream_wrapper_register(). See
  * the README "Technical Design" for the full mechanism and why Dummy connector cannot be used
  * instead.
  */
-class PrintBridgeStreamWrapper
+class PridgeStreamWrapper
 {
     /**
      * @var string Scheme this wrapper is registered for
      */
-    const PROTOCOL = 'printbridge';
+    const PROTOCOL = 'pridge';
 
     /**
      * @var resource|null Stream context, set by PHP itself
@@ -28,7 +28,7 @@ class PrintBridgeStreamWrapper
     public $context;
 
     /**
-     * @var string Profile ref parsed out of printbridge://<ref>
+     * @var string Profile ref parsed out of pridge://<ref>
      */
     private $profileRef = '';
 
@@ -46,7 +46,7 @@ class PrintBridgeStreamWrapper
      * Called by PHP on fopen(). Mode is ignored: this stream only ever buffers writes and
      * forwards them on close, regardless of whether escpos-php opened it "wb+", "rb" or "ab".
      *
-     * @param string $path       The printbridge://<ref> URL passed to fopen()
+     * @param string $path       The pridge://<ref> URL passed to fopen()
      * @param string $mode       fopen() mode (unused)
      * @param int    $options    fopen() options (unused)
      * @param string $openedPath Set to the opened path (unused)
@@ -59,7 +59,7 @@ class PrintBridgeStreamWrapper
         $this->buffer = '';
         $this->position = 0;
 
-        dol_syslog("PrintBridgeStreamWrapper::stream_open: path='".$path."' profileRef='".$this->profileRef."'");
+        dol_syslog("PridgeStreamWrapper::stream_open: path='".$path."' profileRef='".$this->profileRef."'");
 
         return $this->profileRef !== '';
     }
@@ -119,9 +119,9 @@ class PrintBridgeStreamWrapper
 
     /**
      * Called by PHP on fclose(). This is where the buffered ESC/POS ticket is actually
-     * forwarded to the PrintBridge endpoint configured for the parsed profile ref - and,
+     * forwarded to the endpoint configured for the parsed profile ref - and,
      * regardless of whether an endpoint exists or the forward succeeds, recorded into the
-     * rolling test log (PrintBridgeLog), so a ticket is never silently lost.
+     * rolling test log (PridgeLog), so a ticket is never silently lost.
      *
      * @return void
      */
@@ -129,21 +129,21 @@ class PrintBridgeStreamWrapper
     {
         if ($this->buffer === '' || $this->profileRef === '') {
             dol_syslog(
-                "PrintBridgeStreamWrapper::stream_close: nothing to do (buffer="
+                "PridgeStreamWrapper::stream_close: nothing to do (buffer="
                 .strlen($this->buffer)." bytes, profileRef='".$this->profileRef."')"
             );
             return;
         }
 
-        dol_syslog("PrintBridgeStreamWrapper::stream_close: closing, ".strlen($this->buffer)." byte(s) for profile '".$this->profileRef."'");
+        dol_syslog("PridgeStreamWrapper::stream_close: closing, ".strlen($this->buffer)." byte(s) for profile '".$this->profileRef."'");
 
         global $db;
 
-        require_once __DIR__.'/printbridgeprofile.class.php';
-        require_once __DIR__.'/printbridgeclient.class.php';
-        require_once __DIR__.'/printbridgelog.class.php';
+        require_once __DIR__.'/pridgeprofile.class.php';
+        require_once __DIR__.'/pridgeclient.class.php';
+        require_once __DIR__.'/pridgelog.class.php';
 
-        $profile = new PrintBridgeProfile($db);
+        $profile = new PridgeProfile($db);
         $endpoint = '';
         $success = false;
         $httpcode = 0;
@@ -152,31 +152,31 @@ class PrintBridgeStreamWrapper
         if ($profile->fetchByRef($this->profileRef) > 0) {
             $endpoint = $profile->resolveEndpointUrl();
             if ($endpoint !== '') {
-                $client = new PrintBridgeClient();
+                $client = new PridgeClient();
                 $success = $client->send(
                     $endpoint,
                     $profile->resolveToken(),
                     $profile->getTimeout(),
                     $this->buffer,
-                    array('source' => 'dolibarr-printbridge', 'profile' => $this->profileRef)
+                    array('source' => 'dolibarr-pridge', 'profile' => $this->profileRef)
                 );
                 $httpcode = $client->lastHttpCode;
                 $response = $client->lastResponseBody;
             } else {
                 dol_syslog(
-                    "PrintBridgeStreamWrapper::stream_close: no endpoint configured for profile '".$this->profileRef."', logging only",
+                    "PridgeStreamWrapper::stream_close: no endpoint configured for profile '".$this->profileRef."', logging only",
                     LOG_WARNING
                 );
             }
         } else {
-            dol_syslog("PrintBridgeStreamWrapper::stream_close: unknown profile ref '".$this->profileRef."'", LOG_WARNING);
+            dol_syslog("PridgeStreamWrapper::stream_close: unknown profile ref '".$this->profileRef."'", LOG_WARNING);
         }
 
-        $log = new PrintBridgeLog($db);
+        $log = new PridgeLog($db);
         $logresult = $log->record($this->profileRef, $endpoint, $success, $httpcode, $this->buffer, $response);
 
         dol_syslog(
-            "PrintBridgeStreamWrapper::stream_close: logged (record() returned ".$logresult.")"
+            "PridgeStreamWrapper::stream_close: logged (record() returned ".$logresult.")"
             .($logresult <= 0 ? ", error=".$log->error : '')
         );
 

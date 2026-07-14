@@ -1,4 +1,4 @@
-CREATE TABLE llx_printbridge_server
+CREATE TABLE llx_pridge_server
 (
     rowid       INTEGER AUTO_INCREMENT PRIMARY KEY,
     entity      INTEGER DEFAULT 1 NOT NULL,

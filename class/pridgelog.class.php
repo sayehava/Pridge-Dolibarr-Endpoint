@@ -1,16 +1,16 @@
 <?php
 // SPDX-License-Identifier: AGPL-3.0-or-later
 /**
- * Rolling log of the last N PrintBridge tickets (table llx_printbridge_log), kept purely for
+ * Rolling log of the last N Pridge tickets (table llx_pridge_log), kept purely for
  * testing: lets an admin preview what was actually printed and whether/where it was forwarded,
  * without needing a real print collector. Every ticket is logged regardless of whether an
  * endpoint was configured or the forward succeeded - see
- * PrintBridgeStreamWrapper::stream_close(), the only caller of record().
+ * PridgeStreamWrapper::stream_close(), the only caller of record().
  *
  * Content is stored base64-encoded: raw ESC/POS bytes include control bytes that are simplest
  * to keep out of a text column's charset/collation handling entirely.
  */
-class PrintBridgeLog
+class PridgeLog
 {
     /**
      * How many entries to keep. Older rows are pruned after every insert.
@@ -58,7 +58,7 @@ class PrintBridgeLog
     {
         global $conf;
 
-        $sql = "INSERT INTO ".MAIN_DB_PREFIX."printbridge_log";
+        $sql = "INSERT INTO ".MAIN_DB_PREFIX."pridge_log";
         $sql .= " (entity, datec, profile_ref, endpoint, success, httpcode, size, content, response)";
         $sql .= " VALUES (";
         $sql .= ((int) $conf->entity).",";
@@ -92,11 +92,11 @@ class PrintBridgeLog
     {
         global $conf;
 
-        $sql = "DELETE FROM ".MAIN_DB_PREFIX."printbridge_log";
+        $sql = "DELETE FROM ".MAIN_DB_PREFIX."pridge_log";
         $sql .= " WHERE entity = ".((int) $conf->entity);
         $sql .= " AND rowid NOT IN (";
         $sql .= "SELECT rowid FROM (";
-        $sql .= "SELECT rowid FROM ".MAIN_DB_PREFIX."printbridge_log";
+        $sql .= "SELECT rowid FROM ".MAIN_DB_PREFIX."pridge_log";
         $sql .= " WHERE entity = ".((int) $conf->entity);
         $sql .= " ORDER BY rowid DESC LIMIT ".((int) self::MAX_ENTRIES);
         $sql .= ") AS keepids)";
@@ -114,8 +114,8 @@ class PrintBridgeLog
         $list = array();
 
         $sql = "SELECT rowid, datec, profile_ref, endpoint, success, httpcode, size";
-        $sql .= " FROM ".MAIN_DB_PREFIX."printbridge_log";
-        $sql .= " WHERE entity IN (".getEntity('printbridge_log').")";
+        $sql .= " FROM ".MAIN_DB_PREFIX."pridge_log";
+        $sql .= " WHERE entity IN (".getEntity('pridge_log').")";
         $sql .= " ORDER BY rowid DESC";
         $sql .= " LIMIT ".((int) self::MAX_ENTRIES);
 
@@ -145,9 +145,9 @@ class PrintBridgeLog
      */
     public function fetchContent($id)
     {
-        $sql = "SELECT content FROM ".MAIN_DB_PREFIX."printbridge_log";
+        $sql = "SELECT content FROM ".MAIN_DB_PREFIX."pridge_log";
         $sql .= " WHERE rowid = ".((int) $id);
-        $sql .= " AND entity IN (".getEntity('printbridge_log').")";
+        $sql .= " AND entity IN (".getEntity('pridge_log').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {
@@ -170,9 +170,9 @@ class PrintBridgeLog
      */
     public function fetchResponse($id)
     {
-        $sql = "SELECT response FROM ".MAIN_DB_PREFIX."printbridge_log";
+        $sql = "SELECT response FROM ".MAIN_DB_PREFIX."pridge_log";
         $sql .= " WHERE rowid = ".((int) $id);
-        $sql .= " AND entity IN (".getEntity('printbridge_log').")";
+        $sql .= " AND entity IN (".getEntity('pridge_log').")";
 
         $resql = $this->db->query($sql);
         if (!$resql) {
