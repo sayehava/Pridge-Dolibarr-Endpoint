@@ -161,5 +161,11 @@ server/token rework in this session has not been retested live yet.
 
 ## License
 
-Licensed under the GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later). See
+Licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). See
 [`LICENSE`](LICENSE) for the full text.
+
+This license is subject to one additional term under GPLv3 Section 7: modified or
+redistributed versions with an interactive user interface must keep a required attribution
+notice visible in the application's About or Legal Notices section. See
+[`ADDITIONAL_TERMS.md`](ADDITIONAL_TERMS.md) for the exact wording. This does not otherwise
+alter the permissions granted by GPL-3.0-or-later.
