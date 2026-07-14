@@ -1,5 +1,5 @@
 <?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 /*
  * Module descriptor for Pridge Dolibarr Endpoint.
  *
@@ -33,7 +33,7 @@ class modPridge extends DolibarrModules
         $this->editor_name = 'Sayeh Ava Pazouki';
         $this->editor_url = '';
         $this->version = '0.1.0';
-        $this->license = 'AGPL-3.0-or-later';
+        $this->license = 'GPL-3.0-or-later';
         $this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
         $this->picto = 'printer';
 

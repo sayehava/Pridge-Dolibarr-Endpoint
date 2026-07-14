@@ -1,5 +1,5 @@
 <?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Minimal HTTP client that submits a buffered ESC/POS ticket as a job to a PrintBridge Server,
  * matching its plugin API:

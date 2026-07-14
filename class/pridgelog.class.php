@@ -1,5 +1,5 @@
 <?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Rolling log of the last N Pridge tickets (table llx_pridge_log), kept purely for
  * testing: lets an admin preview what was actually printed and whether/where it was forwarded,

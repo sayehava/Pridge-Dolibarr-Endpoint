@@ -1,5 +1,5 @@
 <?php
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * PHP stream wrapper that intercepts the pridge:// scheme.
  *
