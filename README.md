@@ -146,11 +146,58 @@ ALTER TABLE llx_pridge_log
 `llx_pridge_profile` from before those were removed, `DROP COLUMN token, DROP COLUMN
 verify_ssl` in the same statement.)
 
-If you are upgrading from the earlier `printbridge` technical name, this rename requires a
-manual disable/enable cycle of the module in Dolibarr (deactivate the old module, then
-activate the new one) - see `the README`. You will also need to re-point any printer's
-Parameter field from `printbridge://<id>` to `pridge://<id>` in the built-in module's admin
-page, since the old scheme is no longer registered.
+### Migrating from the earlier `printbridge` technical name
+
+If this module was ever activated on this Dolibarr instance under its earlier technical name
+(`printbridge`), renaming the code alone does not update Dolibarr's database - the module
+activation flag, its config constants, and its data tables are all still keyed to the old
+name, and the module folder on the server still needs to be renamed too.
+**Back up your database before running any of this.**
+
+1. In Dolibarr, go to **Setup > Modules/Applications** and disable **PrintBridge Dolibarr
+   Endpoint** (the old module) if it is still listed. This clears the old
+   `MAIN_MODULE_PRINTBRIDGE` activation flag; it does not touch any data tables.
+2. On the server, replace the old module folder (`custom/printbridge`) with this module's
+   current folder, named `custom/pridge`. Do not just add `pridge` alongside `printbridge` -
+   remove or rename the old folder so Dolibarr does not see two versions of the same module,
+   and so `dol_buildpath('/pridge/...')` calls (bundled receiver, lang file, SQL install path)
+   actually resolve.
+3. Run this against your Dolibarr database to carry over existing data and settings under
+   their new names, instead of starting over empty:
+
+   ```sql
+   -- Rename the data tables (keeps all existing servers/profiles/log entries)
+   RENAME TABLE llx_printbridge_server  TO llx_pridge_server;
+   RENAME TABLE llx_printbridge_profile TO llx_pridge_profile;
+   RENAME TABLE llx_printbridge_log     TO llx_pridge_log;
+
+   -- Copy the module's config constants under their new names
+   INSERT INTO llx_const (name, value, type, visible, note, entity)
+   SELECT REPLACE(name, 'PRINTBRIDGE_', 'PRIDGE_'), value, type, visible, note, entity
+   FROM llx_const
+   WHERE name LIKE 'PRINTBRIDGE\_%';
+
+   -- Re-point any printer already wired to the old scheme
+   UPDATE llx_printer_receipt
+   SET parameter = CONCAT('pridge://', SUBSTRING(parameter, LENGTH('printbridge://') + 1))
+   WHERE parameter LIKE 'printbridge://%';
+   ```
+
+   Optional cleanup, only once you've confirmed everything works and you're sure you won't
+   need to roll back:
+
+   ```sql
+   DROP TABLE llx_printbridge_server, llx_printbridge_profile, llx_printbridge_log;
+   DELETE FROM llx_const
+   WHERE name LIKE 'PRINTBRIDGE\_%' OR name = 'MAIN_MODULE_PRINTBRIDGE';
+   ```
+
+4. Go to **Setup > Modules/Applications** and enable **Pridge Dolibarr Endpoint**. Because the
+   tables above already exist (just renamed), Dolibarr's install step for them is a no-op and
+   will not overwrite your migrated data.
+5. Open this module's setup page and confirm your servers/profiles/log entries are all
+   present, then test-print from TakePOS to confirm printers adopted under the old scheme
+   still work.
 
 ## Status
 
