@@ -1,6 +1,6 @@
-# PrintBridge Dolibarr Endpoint
+# Pridge Dolibarr Endpoint
 
-A companion Dolibarr module that adds an HTTP-based printer driver, **PrintBridge**, usable
+A companion Dolibarr module that adds an HTTP-based printer driver, **Pridge**, usable
 from Dolibarr's built-in **Receipt Printers** module and from **TakePOS**, without patching
 Dolibarr core and without disabling or conflicting with the built-in module.
 
@@ -21,8 +21,8 @@ This module works around both limitations without touching any core file:
   `FilePrintConnector` (from `mike42/escpos-php`), meant for a local device path like
   `/dev/usb/lp0` - it does nothing but `fopen()` / `fwrite()` / `fclose()` on the printer's
   Parameter value, with zero validation of that value.
-- It registers a PHP stream wrapper for the scheme `printbridge://`. Pointing a Local
-  Printer's Parameter at `printbridge://<profile-id>` (instead of a real device path) routes
+- It registers a PHP stream wrapper for the scheme `pridge://`. Pointing a Local
+  Printer's Parameter at `pridge://<profile-id>` (instead of a real device path) routes
   those `fopen()`/`fwrite()`/`fclose()` calls into this module instead of the filesystem: the
   ESC/POS bytes are buffered in memory and POSTed over HTTPS to the endpoint configured for
   that profile.
@@ -31,23 +31,23 @@ This module works around both limitations without touching any core file:
   request) - not a core patch.
 
 The built-in Receipt Printers module must stay enabled: it owns the printer list, the ticket
-templates, and the TakePOS integration this module plugs into. This module owns PrintBridge
+templates, and the TakePOS integration this module plugs into. This module owns Pridge
 **servers** (base URLs), **profiles** (which server + endpoint token + timeout a printer
 uses), the rolling test log, and the stream wrapper.
 
-PrintBridge submits jobs to a real PrintBridge Server's plugin API:
+Pridge submits jobs to a real PrintBridge Server's plugin API:
 
 ```
 POST <server base URL>/api/plugin/jobs
 Authorization: Bearer <endpoint token>
 Content-Type: application/octet-stream
-X-PrintBridge-Metadata: {"source":"dolibarr-printbridge","profile":"<ref>"}
+X-PrintBridge-Metadata: {"source":"dolibarr-pridge","profile":"<ref>"}
 
 <raw ESC/POS bytes>
 ```
 
 Per that API's own guidance, the token is only ever sent as a header, never in the URL. If no
-server resolves (profile and module default both unset), PrintBridge falls back to a plain
+server resolves (profile and module default both unset), Pridge falls back to a plain
 raw endpoint URL with no token - this is only meant for simple test receivers like the bundled
 one below, not the real plugin API.
 
@@ -56,33 +56,33 @@ used for this instead.
 
 ## Setup
 
-1. Copy this module's folder into `htdocs/custom/printbridge`, then enable **PrintBridge
+1. Copy this module's folder into `htdocs/custom/pridge`, then enable **Pridge
    Dolibarr Endpoint** in
    **Home > Setup > Modules/Applications**. Make sure the built-in **Receipt Printers** module
    is also enabled - this module does not replace it.
-2. On this module's setup page, add a **PrintBridge server**: a name and your PrintBridge
-   Server's base URL (e.g. `https://printbridge.example.com`) - the plugin API path
+2. On this module's setup page, add a **Pridge server**: a name and your PrintBridge
+   Server's base URL (e.g. `https://pridge.example.com`) - the plugin API path
    (`/api/plugin/jobs`) is added automatically. Optionally, set it (and a default endpoint
    token) as the **module-wide default** at the top of the page - if every printer shares one
    destination, this alone is enough and no per-profile overrides are needed at all.
 3. Either:
    - Use **Adopt an existing printer**: it lists the built-in module's printers using
-     connector type **Local Printer** (the only type PrintBridge can take over - see "Why
+     connector type **Local Printer** (the only type Pridge can take over - see "Why
      this exists") with a one-click Adopt action. Adopting creates a matching profile
      automatically (ref `printer_<id>`) and rewrites that printer's Parameter to
-     `printbridge://printer_<id>`, **overwriting its previous Parameter value**. An
+     `pridge://printer_<id>`, **overwriting its previous Parameter value**. An
      **Unadopt** button next to it clears the Parameter back to empty if you change your mind
      - it cannot restore the printer's previous value, since that was never saved, but it lets
      you reconfigure the printer from scratch. The matching profile is left untouched; or
    - Go to **Setup > Receipt Printers** (the built-in module) yourself and create or edit a
-     printer with connector type **Local Printer**, using `printbridge://<profile-id>` as its
+     printer with connector type **Local Printer**, using `pridge://<profile-id>` as its
      Parameter value - then come back to this module's Profiles section, where the ref picker
-     lists exactly that printer (any printer already pointed at `printbridge://` that has no
+     lists exactly that printer (any printer already pointed at `pridge://` that has no
      profile yet) so you never have to type the ref by hand.
 4. If this printer needs its own server/token instead of the module-wide default, click edit
    on its profile row and set them there. Timeout can be left blank to use the module-wide
    default too. Until a server resolves (profile or default), the fallback is this module's
-   own **bundled receiver** (`printbridgereceiver.php`) - it doesn't print anything, it just
+   own **bundled receiver** (`pridgereceiver.php`) - it doesn't print anything, it just
    records what it received (shown on the setup page) so you can verify the round trip before
    a real server exists.
 5. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
@@ -90,29 +90,29 @@ used for this instead.
    being written to a local file.
 
 Printers using connector type Dummy Printer, Network Printer, Local Windows Printer or Cups
-Printer cannot be adopted or manually pointed at `printbridge://` - none of them route through
-the `fopen()` call PrintBridge intercepts (see `the README`).
+Printer cannot be adopted or manually pointed at `pridge://` - none of them route through
+the `fopen()` call Pridge intercepts (see `the README`).
 
 ## Data format
 
-PrintBridge always forwards a raw **ESC/POS binary command stream**, never a PDF or an image
+Pridge always forwards a raw **ESC/POS binary command stream**, never a PDF or an image
 file - logos, barcodes and QR codes are ESC/POS raster commands embedded in that same byte
 stream by the built-in module, not separate documents. Your print collector needs to
 understand/relay ESC/POS bytes to a real or virtual thermal printer.
 
 ## Bundled test receiver
 
-`printbridgereceiver.php` at the module root is a minimal, unauthenticated endpoint that
-PrintBridge points at automatically until you configure a real one. It never prints anything
-- it writes what it received to `documents/printbridge/lastreceived.bin` and records the last
+`pridgereceiver.php` at the module root is a minimal, unauthenticated endpoint that
+Pridge points at automatically until you configure a real one. It never prints anything
+- it writes what it received to `documents/pridge/lastreceived.bin` and records the last
 profile ref, byte count and timestamp so the setup page can show proof a print actually
-reached *something*. Like the rest of PrintBridge, it has no auth check - only expose it
-inside your trusted network, same as any real print collector you point PrintBridge at.
+reached *something*. Like the rest of Pridge, it has no auth check - only expose it
+inside your trusted network, same as any real print collector you point Pridge at.
 
 ## Recent prints (test log)
 
 The setup page's **Recent prints** section keeps the last 10 tickets that went through
-PrintBridge, regardless of what happened to them:
+Pridge, regardless of what happened to them:
 
 - Forwarded successfully: endpoint and HTTP status shown.
 - Forwarded but failed (endpoint unreachable, non-2xx response, etc.): endpoint and HTTP
@@ -135,16 +135,22 @@ that already exists. If you installed this module before servers/tokens or respo
 existed, run this once against your existing database:
 
 ```sql
-ALTER TABLE llx_printbridge_profile
+ALTER TABLE llx_pridge_profile
     ADD COLUMN server_id INTEGER DEFAULT 0 NOT NULL,
     ADD COLUMN endpoint_token VARCHAR(255) DEFAULT '' NOT NULL;
-ALTER TABLE llx_printbridge_log
+ALTER TABLE llx_pridge_log
     ADD COLUMN response TEXT NOT NULL;
 ```
 
 (If you also still have the very first version's `token`/`verify_ssl` columns on
-`llx_printbridge_profile` from before those were removed, `DROP COLUMN token, DROP COLUMN
+`llx_pridge_profile` from before those were removed, `DROP COLUMN token, DROP COLUMN
 verify_ssl` in the same statement.)
+
+If you are upgrading from the earlier `printbridge` technical name, this rename requires a
+manual disable/enable cycle of the module in Dolibarr (deactivate the old module, then
+activate the new one) - see `the README`. You will also need to re-point any printer's
+Parameter field from `printbridge://<id>` to `pridge://<id>` in the built-in module's admin
+page, since the old scheme is no longer registered.
 
 ## Status
 
