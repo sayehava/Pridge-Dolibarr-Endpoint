@@ -11,9 +11,8 @@
  * for that profile.
  *
  * This class is instantiated once per request by class/actions_pridge.class.php
- * (a Dolibarr hook), which is what registers the scheme via stream_wrapper_register(). See
- * the README "Technical Design" for the full mechanism and why Dummy connector cannot be used
- * instead.
+ * (a Dolibarr hook), which is what registers the scheme via stream_wrapper_register() (see
+ * README.md "Why this exists" for the full mechanism).
  */
 class PridgeStreamWrapper
 {

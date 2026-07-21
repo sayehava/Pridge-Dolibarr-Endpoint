@@ -12,7 +12,7 @@
  *   <raw ESC/POS bytes as the request body>
  *
  * The bytes handled here are always a raw ESC/POS binary command stream (never a PDF or an
- * image file) - see the README "Data format". Per the API's own guidance, the token is only
+ * image file) - see README.md "Data format". Per the API's own guidance, the token is only
  * ever sent as a header, never in the URL.
  */
 class PridgeClient

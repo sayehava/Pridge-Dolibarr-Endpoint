@@ -51,9 +51,6 @@ server resolves (profile and module default both unset), Pridge falls back to a 
 raw endpoint URL with no token - this is only meant for simple test receivers like the bundled
 one below, not the real plugin API.
 
-See `the README` for the full technical design, including why a Dummy-type connector cannot be
-used for this instead.
-
 ## Setup
 
 1. Copy this module's folder into `htdocs/custom/pridge`, then enable **Pridge
@@ -91,7 +88,7 @@ used for this instead.
 
 Printers using connector type Dummy Printer, Network Printer, Local Windows Printer or Cups
 Printer cannot be adopted or manually pointed at `pridge://` - none of them route through
-the `fopen()` call Pridge intercepts (see `the README`).
+the `fopen()` call Pridge intercepts (see "Why this exists" above).
 
 ## Data format
 

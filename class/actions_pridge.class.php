@@ -6,8 +6,8 @@
  * Loaded by Dolibarr's HookManager on every request, because the module descriptor claims
  * the 'all' hook context. Its only job is to register the pridge:// stream wrapper in
  * the constructor, early enough (before any print action runs) for
- * Mike42\Escpos\PrintConnectors\FilePrintConnector's fopen() call to be intercepted. See
- * the README "Technical Design" for why this is necessary and why it works.
+ * Mike42\Escpos\PrintConnectors\FilePrintConnector's fopen() call to be intercepted (see
+ * README.md "Why this exists" for why this is necessary and why it works).
  *
  * Class name must be exactly "Actions".ucfirst($module) where $module is the module's
  * lowercase technical name ("pridge") - this is how Dolibarr's HookManager::initHooks()

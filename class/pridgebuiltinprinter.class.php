@@ -9,7 +9,7 @@
  * Only "Local Printer"-type printers can ever be adopted. Dummy has no I/O to intercept;
  * Network (fsockopen), Windows (regex-validated destination, then shell/copy) and CUPS
  * (lpstat/lp via proc_open) never go through fopen(), so none of them can be routed through
- * our pridge:// stream wrapper. See the README.
+ * our pridge:// stream wrapper (see README.md "Why this exists").
  */
 class PridgeBuiltinPrinter
 {

@@ -6,7 +6,7 @@
  * This module does not clone or conflict with Dolibarr's built-in Receipt Printers module.
  * It only adds an HTTP transport ("Pridge") that the built-in module's existing "Local
  * Printer" connector type can be pointed at, via a PHP stream wrapper registered through
- * Dolibarr's official hook system. See the README for the full design.
+ * Dolibarr's official hook system (see README.md "Why this exists" for the full design).
  */
 
 include_once DOL_DOCUMENT_ROOT.'/core/modules/DolibarrModules.class.php';
@@ -56,7 +56,7 @@ class modPridge extends DolibarrModules
 
         // Claim the 'all' hook context so class/actions_pridge.class.php is
         // instantiated on every request, early enough to register the pridge:// stream
-        // wrapper before any page can attempt to print a receipt. See the README.
+        // wrapper before any page can attempt to print a receipt.
         $this->module_parts = array(
             'hooks' => array('all'),
         );
