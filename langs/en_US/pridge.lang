@@ -1,11 +1,11 @@
 # Dolibarr language file - Source file is en_US - pridge
 # Language file for the Pridge Dolibarr Endpoint module.
 PridgeDesc=Send receipt tickets to an external print collector over HTTPS
-PridgeDescLong=Pridge Dolibarr Endpoint adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a pridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket as a job to a PrintBridge Server, instead of writing to a local file. Add your server(s) below, then create a profile picking which server and endpoint token to use, and reference it from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
+PridgeDescLong=Pridge Dolibarr Endpoint adds an HTTP transport to Dolibarr's built-in Receipt Printers module and TakePOS, without patching core or disabling that module. It registers a pridge:// stream wrapper so a printer configured with connector type "Local Printer" (Setup > Receipt Printers) forwards its ticket as a job to a Pridge Server, instead of writing to a local file. Add your server(s) below, then create a profile picking which server and endpoint token to use, and reference it from that module's printer setup - or use the "Adopt an existing printer" section to wire one up automatically.
 PridgeDefaults=Default settings
 PridgeDefaultsHelp=Used whenever a profile leaves the matching field blank. A default server (with a default endpoint token) is the normal setup; the fallback endpoint URL only matters when no server resolves at all (profile or default) - e.g. for the bundled test receiver.
 PridgeServers=Pridge servers
-PridgeServersHelp=A server is a PrintBridge Server instance's base URL (e.g. https://pridge.example.com). Profiles pick which server to submit print jobs to; the plugin API path (<base URL>/api/plugin/jobs) is added automatically.
+PridgeServersHelp=A server is a Pridge Server instance's base URL (e.g. https://pridge.example.com). Profiles pick which server to submit print jobs to; the plugin API path (<base URL>/api/plugin/jobs) is added automatically.
 PridgeProfiles=Pridge profiles
 ServerName=Name
 ServerBaseUrl=Base URL
@@ -20,7 +20,7 @@ DefaultEndpointToken=Default endpoint token
 NoServerUseRawEndpoint=No server (use fallback endpoint)
 EndpointToken=Endpoint token
 FallbackEndpoint=Fallback endpoint URL
-FallbackEndpointTooltip=Only used when no server resolves at all (neither this row nor the module default has one). Not part of the real PrintBridge Server API - it's a plain URL with no auth, for simple test receivers like the bundled one. If you've set up a server and token above, leave this blank; it will never be used.
+FallbackEndpointTooltip=Only used when no server resolves at all (neither this row nor the module default has one). Not part of the real Pridge Server API - it's a plain URL with no auth, for simple test receivers like the bundled one. If you've set up a server and token above, leave this blank; it will never be used.
 DefaultEndpoint=Fallback endpoint URL (default)
 DefaultTimeout=Default timeout (seconds)
 ProfileRef=Profile id

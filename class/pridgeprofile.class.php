@@ -4,7 +4,7 @@
  * CRUD for Pridge profiles (table llx_pridge_profile).
  *
  * A profile is what a printer's Parameter value pridge://<ref> resolves to. It picks a
- * PridgeServer to submit jobs to (the real PrintBridge Server's plugin API always lives
+ * PridgeServer to submit jobs to (the real Pridge Server's plugin API always lives
  * at <server base_url>/api/plugin/jobs) plus its own endpoint token - the bearer token that
  * identifies which destination on that server the job belongs to. If no server is selected
  * (profile or module default), the raw `endpoint` field is used instead as a fallback

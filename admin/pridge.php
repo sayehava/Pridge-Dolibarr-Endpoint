@@ -205,6 +205,11 @@ print load_fiche_titre($title, $linkback, 'title_setup');
 
 print $langs->trans('PridgeDescLong').'<br><br>';
 
+$compatibilitywarning = getDolGlobalString('PRIDGE_COMPATIBILITY_WARNING');
+if ($compatibilitywarning !== '') {
+    print '<div class="warning">'.img_warning().' '.dol_escape_htmltag($compatibilitywarning).'</div><br>';
+}
+
 $servers = $server->fetchAll();
 
 

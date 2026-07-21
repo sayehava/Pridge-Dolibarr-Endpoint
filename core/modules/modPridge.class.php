@@ -32,7 +32,7 @@ class modPridge extends DolibarrModules
         $this->descriptionlong = 'PridgeDescLong';
         $this->editor_name = 'Sayeh Ava Pazouki';
         $this->editor_url = '';
-        $this->version = '0.1.0';
+        $this->version = '0.2.0';
         $this->license = 'GPL-3.0-or-later';
         $this->const_name = 'MAIN_MODULE_'.strtoupper($this->name);
         $this->picto = 'printer';

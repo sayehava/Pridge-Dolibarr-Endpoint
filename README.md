@@ -35,13 +35,13 @@ templates, and the TakePOS integration this module plugs into. This module owns 
 **servers** (base URLs), **profiles** (which server + endpoint token + timeout a printer
 uses), the rolling test log, and the stream wrapper.
 
-Pridge submits jobs to a real PrintBridge Server's plugin API:
+Pridge submits jobs to a real Pridge Server's plugin API:
 
 ```
 POST <server base URL>/api/plugin/jobs
 Authorization: Bearer <endpoint token>
 Content-Type: application/octet-stream
-X-PrintBridge-Metadata: {"source":"dolibarr-pridge","profile":"<ref>"}
+X-Pridge-Metadata: {"source":"dolibarr-pridge","profile":"<ref>"}
 
 <raw ESC/POS bytes>
 ```
@@ -57,7 +57,7 @@ one below, not the real plugin API.
    Dolibarr Endpoint** in
    **Home > Setup > Modules/Applications**. Make sure the built-in **Receipt Printers** module
    is also enabled - this module does not replace it.
-2. On this module's setup page, add a **Pridge server**: a name and your PrintBridge
+2. On this module's setup page, add a **Pridge server**: a name and your Pridge
    Server's base URL (e.g. `https://pridge.example.com`) - the plugin API path
    (`/api/plugin/jobs`) is added automatically. Optionally, set it (and a default endpoint
    token) as the **module-wide default** at the top of the page - if every printer shares one
@@ -83,7 +83,7 @@ one below, not the real plugin API.
    records what it received (shown on the setup page) so you can verify the round trip before
    a real server exists.
 5. Assign that printer to a TakePOS terminal as usual (**TakePOS > Terminals**). Tickets
-   printed from that terminal are now submitted as jobs to your PrintBridge Server instead of
+   printed from that terminal are now submitted as jobs to your Pridge Server instead of
    being written to a local file.
 
 Printers using connector type Dummy Printer, Network Printer, Local Windows Printer or Cups

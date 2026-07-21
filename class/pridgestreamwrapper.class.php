@@ -136,7 +136,7 @@ class PridgeStreamWrapper
 
         dol_syslog("PridgeStreamWrapper::stream_close: closing, ".strlen($this->buffer)." byte(s) for profile '".$this->profileRef."'");
 
-        global $db;
+        global $db, $conf;
 
         require_once __DIR__.'/pridgeprofile.class.php';
         require_once __DIR__.'/pridgeclient.class.php';
@@ -161,6 +161,7 @@ class PridgeStreamWrapper
                 );
                 $httpcode = $client->lastHttpCode;
                 $response = $client->lastResponseBody;
+                dolibarr_set_const($db, 'PRIDGE_COMPATIBILITY_WARNING', $client->lastCompatibilityWarning, 'chaine', 0, '', $conf->entity);
             } else {
                 dol_syslog(
                     "PridgeStreamWrapper::stream_close: no endpoint configured for profile '".$this->profileRef."', logging only",

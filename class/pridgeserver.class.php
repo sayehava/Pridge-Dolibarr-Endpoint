@@ -3,7 +3,7 @@
 /**
  * CRUD for Pridge servers (table llx_pridge_server).
  *
- * A server is just a base URL for a real PrintBridge Server instance (see README.md for
+ * A server is just a base URL for a real Pridge Server instance (see README.md for
  * its plugin API). Profiles pick a server plus their own endpoint token; the
  * submission URL is always <base_url>/api/plugin/jobs.
  */
