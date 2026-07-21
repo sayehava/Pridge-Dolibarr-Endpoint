@@ -125,6 +125,17 @@ failure like an HTTP 403 shows its explanation right there instead of requiring 
 log access. Entries beyond the last 10 are pruned
 automatically.
 
+## Updates
+
+The setup page's **Updates** section checks `github.com/sayehava/Pridge-Dolibarr-Endpoint` for new releases (hourly, or on demand with "Check for updates"). Requires the PHP `curl` and `zip` extensions, and that PHP can write to the module's own directory.
+
+Updating is a two-step, explicit process — nothing on the live install changes until you confirm the final step:
+
+1. **Back up and download**: creates a full zip backup of the module's files under `documents/pridge/updates/backups/` (outside the module's own code directory), then downloads and unpacks the new release into a staging area. The live module is untouched at this point.
+2. **Apply update now**: overlays the staged files onto the live module.
+
+The last 5 backups are kept automatically, each with a **Restore this backup** button. A **Discard staged update** button is also available before applying.
+
 ## Upgrading an existing test install
 
 Dolibarr only runs a module's `CREATE TABLE` once - it does not add new columns to a table

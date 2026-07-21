@@ -21,7 +21,7 @@ class PridgeClient
     /**
      * Module version sent as X-Pridge-Module-Version, kept in sync with modPridge::$version.
      */
-    const MODULE_VERSION = '0.2.0';
+    const MODULE_VERSION = '0.3.0';
 
     /**
      * @var int HTTP status code from the last send() call, 0 if none was attempted

@@ -37,6 +37,7 @@ require_once __DIR__.'/../class/pridgeprofile.class.php';
 require_once __DIR__.'/../class/pridgebuiltinprinter.class.php';
 require_once __DIR__.'/../class/pridgelog.class.php';
 require_once __DIR__.'/../class/pridgeserver.class.php';
+require_once __DIR__.'/../class/pridgeupdater.class.php';
 
 // Load translation files required by the page. The @pridge suffix is required for
 // custom-module lang files - without it Dolibarr looks in core's own langs/ directory,
@@ -66,6 +67,7 @@ $profile = new PridgeProfile($db);
 $builtinprinter = new PridgeBuiltinPrinter($db);
 $pridgelog = new PridgeLog($db);
 $server = new PridgeServer($db);
+$updater = new PridgeUpdater($db);
 
 
 /*
@@ -191,6 +193,54 @@ if ($action == 'unadopt') {
 
     $action = '';
 }
+
+if ($action == 'checkupdate') {
+    $updater->checkForUpdate(true);
+    setEventMessages($langs->trans('UpdateCheckDone'), null);
+    $action = '';
+}
+
+if ($action == 'prepareupdate') {
+    try {
+        $updater->prepareUpdate();
+        setEventMessages($langs->trans('UpdatePrepared'), null);
+    } catch (Exception $e) {
+        dol_syslog('PridgeUpdater::prepareUpdate failed: '.$e->getMessage(), LOG_ERR);
+        setEventMessages($e->getMessage(), null, 'errors');
+    }
+    $action = '';
+}
+
+if ($action == 'discardupdate') {
+    $updater->discardStaged();
+    setEventMessages($langs->trans('UpdateDiscarded'), null);
+    $action = '';
+}
+
+if ($action == 'applyupdate') {
+    try {
+        $updater->applyStaged();
+        setEventMessages($langs->trans('UpdateApplied'), null);
+    } catch (Exception $e) {
+        dol_syslog('PridgeUpdater::applyStaged failed: '.$e->getMessage(), LOG_ERR);
+        setEventMessages($e->getMessage(), null, 'errors');
+    }
+    $action = '';
+}
+
+if ($action == 'restorebackup') {
+    $backupfile = GETPOST('backup', 'alphanohtml');
+    try {
+        $updater->rollback($updater->backupsDir().'/'.basename($backupfile));
+        setEventMessages($langs->trans('BackupRestored'), null);
+    } catch (Exception $e) {
+        dol_syslog('PridgeUpdater::rollback failed: '.$e->getMessage(), LOG_ERR);
+        setEventMessages($e->getMessage(), null, 'errors');
+    }
+    $action = '';
+}
+
+$updater->checkForUpdate();
 
 
 /*
@@ -536,5 +586,91 @@ function pridgeShowPreview(btn) {
     document.getElementById("pridgepreviewdialog").showModal();
 }
 </script>';
+
+print load_fiche_titre($langs->trans('PridgeUpdates'), '', '');
+
+$currentversion = PridgeClient::MODULE_VERSION;
+$latestknown = $updater->latestKnown();
+$stagedinfo = $updater->stagedInfo();
+$lastcheckerror = $updater->lastCheckError();
+$lastcheckedat = $updater->lastCheckedAt();
+
+print '<span class="opacitymedium">'.$langs->trans('PridgeUpdatesHelp').'</span><br><br>';
+
+print $langs->trans('CurrentVersion').': v'.dol_escape_htmltag($currentversion).'<br>';
+print $langs->trans('LastChecked').': '.($lastcheckedat ? dol_escape_htmltag($lastcheckedat).' UTC' : $langs->trans('NeverCheckedYet')).'<br><br>';
+
+if ($lastcheckerror !== null) {
+    print '<div class="warning">'.img_warning().' '.$langs->trans('UpdateCheckFailed').': '.dol_escape_htmltag($lastcheckerror).'</div><br>';
+}
+
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" style="display:inline-block;margin-right:8px;">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
+print '<input type="hidden" name="action" value="checkupdate">';
+print '<input type="submit" class="button smallpaddingimp" value="'.$langs->trans('CheckForUpdates').'">';
+print '</form>';
+
+if ($stagedinfo !== null) {
+    print '<div class="info" style="margin-top:10px;">';
+    print '<strong>'.$langs->trans('UpdateReadyToApply').'</strong><br>';
+    print $langs->trans('UpdateStagedBody', dol_escape_htmltag($stagedinfo['version']), dol_escape_htmltag(basename($stagedinfo['backup_path']))).'<br><br>';
+    print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" style="display:inline-block;margin-right:8px;" onsubmit="return confirm(\''.dol_escape_js($langs->trans('UpdateApplyConfirm')).'\');">';
+    print '<input type="hidden" name="token" value="'.newToken().'">';
+    print '<input type="hidden" name="action" value="applyupdate">';
+    print '<input type="submit" class="button smallpaddingimp" value="'.$langs->trans('ApplyUpdateNow').'">';
+    print '</form>';
+    print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" style="display:inline-block;">';
+    print '<input type="hidden" name="token" value="'.newToken().'">';
+    print '<input type="hidden" name="action" value="discardupdate">';
+    print '<input type="submit" class="button smallpaddingimp button-cancel" value="'.$langs->trans('DiscardStagedUpdate').'">';
+    print '</form>';
+    print '</div>';
+} elseif ($latestknown !== null && $updater->isUpdateAvailable()) {
+    print '<div class="info" style="margin-top:10px;">';
+    print '<strong>'.$langs->trans('UpdateAvailable').': '.dol_escape_htmltag($latestknown['tag']).'</strong><br>';
+    if ($latestknown['notes'] !== '') {
+        print '<pre style="white-space:pre-wrap;word-break:break-word;max-height:220px;overflow:auto;">'.dol_escape_htmltag($latestknown['notes']).'</pre>';
+    }
+    print '<p>'.$langs->trans('UpdatePrepareHelp').'</p>';
+    print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+    print '<input type="hidden" name="token" value="'.newToken().'">';
+    print '<input type="hidden" name="action" value="prepareupdate">';
+    print '<input type="submit" class="button smallpaddingimp" value="'.$langs->trans('PrepareUpdate').'">';
+    print '</form>';
+    print '</div>';
+} elseif ($latestknown !== null) {
+    print '<p class="opacitymedium">'.$langs->trans('UpdateUpToDate').'</p>';
+}
+
+print '<br>';
+print load_fiche_titre($langs->trans('UpdateBackups'), '', '');
+print '<span class="opacitymedium">'.$langs->trans('UpdateBackupsHelp', 5).'</span><br><br>';
+
+$backups = $updater->listBackups();
+if (empty($backups)) {
+    print '<p class="opacitymedium">'.$langs->trans('NoBackupsYet').'</p>';
+} else {
+    print '<table class="noborder centpercent">';
+    print '<tr class="liste_titre">';
+    print '<td>'.$langs->trans('BackupCreatedAt').'</td>';
+    print '<td>'.$langs->trans('BackupSize').'</td>';
+    print '<td></td>';
+    print '</tr>';
+    foreach ($backups as $backup) {
+        print '<tr class="oddeven">';
+        print '<td>'.dol_escape_htmltag($backup['created_at']).' UTC</td>';
+        print '<td>'.number_format($backup['size'] / 1048576, 1).' MB</td>';
+        print '<td>';
+        print '<form method="post" action="'.$_SERVER["PHP_SELF"].'" onsubmit="return confirm(\''.dol_escape_js($langs->trans('RestoreBackupConfirm')).'\');">';
+        print '<input type="hidden" name="token" value="'.newToken().'">';
+        print '<input type="hidden" name="action" value="restorebackup">';
+        print '<input type="hidden" name="backup" value="'.dol_escape_htmltag($backup['name']).'">';
+        print '<input type="submit" class="button smallpaddingimp button-cancel" value="'.$langs->trans('RestoreThisBackup').'">';
+        print '</form>';
+        print '</td>';
+        print '</tr>';
+    }
+    print '</table>';
+}
 
 llxFooter();
